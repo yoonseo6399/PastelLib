@@ -1,0 +1,4 @@
+name: PastelLib
+version: '${version}'
+main: io.github.yoonseo.pastellib.PastelLib
+api-version: '1.21'
