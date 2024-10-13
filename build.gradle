@@ -3,6 +3,8 @@ plugins {
     id 'idea'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
+
 }
 
 group = 'io.github.yoonseo'
@@ -27,6 +29,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
     implementation("io.github.monun:heartbeat-coroutines:0.0.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("io.github.monun:kommand-api:3.1.7")
+
 }
 
 def targetJavaVersion = 17
