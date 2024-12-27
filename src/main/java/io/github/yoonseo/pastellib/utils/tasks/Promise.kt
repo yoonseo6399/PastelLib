@@ -37,3 +37,5 @@ fun <T> async(block : AsyncPromise<T>.() -> T) : AsyncPromise<T> {
     promise = AsyncPromise(id)
     return promise
 }
+
+fun <R> eventual(block: Promise.() -> R?,callback: (R) -> Unit) : Promise = syncRepeating { block(this)?.let { callback(it) } }
