@@ -1,6 +1,9 @@
 package io.github.yoonseo.pastellib
 
-import io.github.yoonseo.pastellib.utils.Selector
+import io.github.monun.kommand.kommand
+import io.github.yoonseo.pastellib.activities.Sit
+import io.github.yoonseo.pastellib.activities.isSitting
+import io.github.yoonseo.pastellib.utils.selectors.Selector
 import io.github.yoonseo.pastellib.utils.debug
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import org.bukkit.Bukkit
@@ -13,6 +16,7 @@ class PastelLib : JavaPlugin() {
     }
     override fun onEnable() {
         instance = this
+        Sit.initialize()
         Bukkit.getPlayer("command_juho")?.let {
             syncRepeating {
                 val e = Selector.entity<LivingEntity>(it.eyeLocation,it.location.direction,0.2,20.0) { e -> e != it }
@@ -24,6 +28,7 @@ class PastelLib : JavaPlugin() {
         }
     }
     override fun onDisable() {
-        // Plugin shutdown logica
+        // Plugin shutdown logic
+        Sit.map.keys.forEach { it.isSitting = false }
     }
 }

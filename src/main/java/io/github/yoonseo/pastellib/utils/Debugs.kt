@@ -25,7 +25,7 @@ fun log(message: Component) {
 fun log(message : String) = log(Component.text(message))
 
 
-fun Location.showParticle(particleType: Particle) { world.spawnParticle(particleType,this,1,0.0,0.0,0.0,0.0,0.0) }
+fun Location.showParticle(particleType: Particle) { world.spawnParticle(particleType,this,1,0.0,0.0,0.0,0.0) }
 
 fun LivingEntity.debug(){
     addPotionEffect(PotionEffect(PotionEffectType.GLOWING,20*10,1,false,false))
@@ -47,7 +47,7 @@ internal fun Location.toComponent(data : Any? = null,prefix: Boolean = false) : 
         //additional info
         if(data is LivingEntity) data.debug()
         else if(data is Block) data.debug()
-    })
+    }).hoverEvent(Component.text("Click to look at this location"))
     return if(prefix) Component.text("Location : ") + component else component
 }
 internal fun UUID.toComponent(prefix : Boolean = false) : Component =
@@ -61,5 +61,10 @@ fun Location.toComponent(prefix: Boolean = false) : Component = toComponent(null
 data class DebugScope(val commandJuho : Player?)
 fun <R : Any?> debug(block : DebugScope.() -> R) {
     val scope = DebugScope(Bukkit.getPlayer("command_juho"))
-    block(scope)
+    try {
+        block(scope)
+    } catch (e : Exception) {
+        log("${e.message}")
+        e.printStackTrace()
+    }
 }

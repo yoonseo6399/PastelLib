@@ -37,5 +37,11 @@ fun <T> async(block : AsyncPromise<T>.() -> T) : AsyncPromise<T> {
     promise = AsyncPromise(id)
     return promise
 }
+fun later(delay : Long, block : Promise.() -> Unit) : Promise {
+    var promise : Promise? = null
+    val id = Bukkit.getScheduler().scheduleSyncDelayedTask(PastelLib.instance, { block(promise!!) },delay)
+    promise = Promise(id)
+    return promise
+}
 
-fun <R> eventual(block: Promise.() -> R?,callback: (R) -> Unit) : Promise = syncRepeating { block(this)?.let { callback(it) } }
+fun <R> eventual(callback: (R) -> Unit,block: Promise.() -> R?) : Promise = syncRepeating { block(this)?.let { callback(it) } }
