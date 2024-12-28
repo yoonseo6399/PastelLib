@@ -3,14 +3,10 @@ package io.github.yoonseo.pastellib.guns
 import io.github.yoonseo.pastellib.PastelLib
 import io.github.yoonseo.pastellib.utils.amountOf
 import io.github.yoonseo.pastellib.utils.dataContainer
-import io.github.yoonseo.pastellib.utils.isKeepClicking
 import io.github.yoonseo.pastellib.utils.removeItem
 import io.github.yoonseo.pastellib.utils.selectors.ComplexTickedSelector
-import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
-import io.github.yoonseo.pastellib.utils.selectors.TickedSelector
 import io.github.yoonseo.pastellib.utils.selectors.runByTick
 import io.github.yoonseo.pastellib.utils.tasks.Promise
-import io.github.yoonseo.pastellib.utils.tasks.eventual
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import net.kyori.adventure.sound.Sound
@@ -18,21 +14,15 @@ import org.bukkit.Bukkit
 import org.bukkit.EntityEffect
 import org.bukkit.Material
 import org.bukkit.block.Block
-import org.bukkit.damage.DamageSource
-import org.bukkit.damage.DamageType
-import org.bukkit.entity.Item
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
 import org.bukkit.inventory.ItemStack
-import org.jetbrains.annotations.ApiStatus.Experimental
-import java.util.UUID
-import kotlin.math.floor
+import java.util.*
 
 class Gun(val item: ItemStack) {
     companion object{
@@ -41,16 +31,16 @@ class Gun(val item: ItemStack) {
     }
 
     val dataContainer = item.dataContainer()
-    var ammo : Int           by dataContainer
-    var magazineSize : Int   by dataContainer
+    var ammo : Int             by dataContainer
+    var magazineSize : Int     by dataContainer
     var isReloading : Boolean  by dataContainer
-    val reloadTime : Int     by dataContainer
-    val damage : Double      by dataContainer
-    val bulletSpeed : Double by dataContainer
-    val recoil : Double      by dataContainer
+    val reloadTime : Int       by dataContainer
+    val damage : Double        by dataContainer
+    val bulletSpeed : Double   by dataContainer
+    val recoil : Double        by dataContainer
     // how much tick is needed for next firing
-    val fireRate : Int       by dataContainer
-    val ammoType : String     by dataContainer
+    val fireRate : Int         by dataContainer
+    val ammoType : String      by dataContainer
     var lastFired : Int = 0
     var reloadPromise : Promise? = null
     var fireTask : Promise? = null
@@ -60,12 +50,12 @@ class Gun(val item: ItemStack) {
         return Bukkit.getCurrentTick() - lastFired > fireRate && ammo > 0 && !isReloading
     }
 
-    private fun createSelector() : ComplexTickedSelector<LivingEntity,Block, LivingEntity> = ComplexTickedSelector<LivingEntity,Block, LivingEntity>(player.eyeLocation,player.location.direction, range = 100.0) {
+    private fun createSelector(player : Player) : ComplexTickedSelector<LivingEntity,Block, LivingEntity> = ComplexTickedSelector<LivingEntity,Block, LivingEntity>(player.eyeLocation,player.location.direction, range = 100.0) {
         if(getBlock() != null) isFinished = true
         return@ComplexTickedSelector getEntities()
     }
 
-    fun attachFireTask(player: Player): Boolean {
+    fun attachFireTask(player: Player) {
         var times = 0
         if(fireTask!= null) fireTask!!.cancel()
         fireTask = syncRepeating {
@@ -75,9 +65,12 @@ class Gun(val item: ItemStack) {
         }
     }
     private fun fire(player: Player) : Boolean{
-        if (!isReadyToFire()) return false
+        if (!isReadyToFire()) {
+            reload(player)
+            return false
+        }
         val damage = damage // caching
-        val selector = createSelector()
+        val selector = createSelector(player)
         selector.runByTick(stepSize = (bulletSpeed / 0.2).toInt()) {
             it.forEach {
                 it.health -= damage
@@ -124,5 +117,23 @@ class Gun(val item: ItemStack) {
                 if(fromItem(p.equipment.itemInMainHand) == this) attachFireTask(player)
             }
         }, PastelLib.instance)
+    }
+
+    override fun hashCode(): Int {
+        var result = lastFired
+        result = 31 * result + item.hashCode()
+        result = 31 * result + dataContainer.hashCode()
+        result = 31 * result + (reloadPromise?.hashCode() ?: 0)
+        result = 31 * result + (fireTask?.hashCode() ?: 0)
+        result = 31 * result + ammo
+        result = 31 * result + magazineSize
+        result = 31 * result + isReloading.hashCode()
+        result = 31 * result + reloadTime
+        result = 31 * result + damage.hashCode()
+        result = 31 * result + bulletSpeed.hashCode()
+        result = 31 * result + recoil.hashCode()
+        result = 31 * result + fireRate
+        result = 31 * result + ammoType.hashCode()
+        return result
     }
 }

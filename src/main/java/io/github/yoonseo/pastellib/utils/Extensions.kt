@@ -3,6 +3,7 @@ package io.github.yoonseo.pastellib.utils
 import com.google.common.base.Predicate
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import kotlin.reflect.KClass
 
 sealed class Union<T1,T2>{
     data class Left<T1>(val value: T1) : Union<T1, Nothing>()
@@ -41,4 +42,30 @@ fun Inventory.removeItem(material: org.bukkit.Material, amount: Int,predicate: P
         if (remaining == 0) break
     }
     return remaining == 0
+}
+
+fun <T> List<T>.copyToArrayList() : ArrayList<T> = ArrayList(this)
+inline fun <reified T : Any> String.isAssignable(): Boolean {
+    return isAssignable(T::class)
+}
+fun <T : Any> String.isAssignable(clz : KClass<T>): Boolean {
+    return when(clz) {
+        Int::class -> this.toIntOrNull()!= null
+        Long::class -> this.toLongOrNull()!= null
+        Double::class -> this.toDoubleOrNull()!= null
+        String::class -> true
+        Boolean::class -> this.toBooleanStrictOrNull()!=null
+        else -> false
+    }
+}
+@Suppress("UNCHECKED_CAST")
+fun <T : Any> String.toType(clz : KClass<T>): T? {
+    return when(clz) {
+        Int::class -> this.toIntOrNull()
+        Long::class -> this.toLongOrNull()
+        Double::class -> this.toDoubleOrNull()
+        String::class -> this
+        Boolean::class -> this.toBooleanStrictOrNull()
+        else -> null
+    } as? T
 }
