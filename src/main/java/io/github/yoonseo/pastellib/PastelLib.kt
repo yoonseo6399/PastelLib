@@ -1,13 +1,11 @@
 package io.github.yoonseo.pastellib
 
-import io.github.monun.kommand.kommand
 import io.github.yoonseo.pastellib.activities.Sit
 import io.github.yoonseo.pastellib.activities.isSitting
-import io.github.yoonseo.pastellib.utils.selectors.Selector
-import io.github.yoonseo.pastellib.utils.debug
-import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
-import org.bukkit.Bukkit
-import org.bukkit.entity.LivingEntity
+import io.github.yoonseo.pastellib.guns.Gun
+import io.github.yoonseo.pastellib.guns.GunCommand
+import io.github.yoonseo.pastellib.guns.GunCommandTabCompleter
+import io.github.yoonseo.pastellib.utils.TaskCommand
 import org.bukkit.plugin.java.JavaPlugin
 
 class PastelLib : JavaPlugin() {
@@ -17,15 +15,9 @@ class PastelLib : JavaPlugin() {
     override fun onEnable() {
         instance = this
         Sit.initialize()
-        Bukkit.getPlayer("command_juho")?.let {
-            syncRepeating {
-                val e = Selector.entity<LivingEntity>(it.eyeLocation,it.location.direction,0.2,20.0) { e -> e != it }
-                if(e != null) {
-                    e.debug()
-                    cancel()
-                }
-            }
-        }
+        Gun.initalize()
+        getCommand("gun")?.also { it.tabCompleter = GunCommandTabCompleter() }?.setExecutor(GunCommand())
+        getCommand("task")?.setExecutor(TaskCommand())
     }
     override fun onDisable() {
         // Plugin shutdown logic

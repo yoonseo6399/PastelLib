@@ -95,8 +95,12 @@ fun <R> TickedSelector<R>.runByTick(stepSize: Int = 1, onFinish: (List<R>) -> Un
     eventual(onFinish) {
         var a: List<R>? = null
         for (i in 1..stepSize) {
-            if (isFinished) cancel()
+            if (isFinished) {
+                cancel()
+                break
+            }
             a = performTick()
+            if(a!= null) return@eventual a
         }
-        return@eventual a
+        return@eventual null
     }

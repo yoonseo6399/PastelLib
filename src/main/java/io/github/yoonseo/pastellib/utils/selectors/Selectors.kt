@@ -64,8 +64,7 @@ class ComplexTickedSelector<E : Entity,B : Block,R>(
         ).mapNotNull { it as? E }.takeIf { it.isNotEmpty() }
 
     @Suppress("UNCHECKED_CAST")
-    fun getBlock() : B? = current.block as? B
-
+    fun getBlock() : B? = current.block.takeIf { it.type != Material.AIR } as? B
 }
 
 

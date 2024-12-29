@@ -55,8 +55,7 @@ var LivingEntity.isSitting : Boolean
             a.addPassenger(this@isSitting)
         }
         else {
-            Sit.map.remove(this)
             Sit.map[this]?.remove()
-
+            Sit.map.remove(this)
         }
     }

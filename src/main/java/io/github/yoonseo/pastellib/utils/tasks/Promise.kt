@@ -1,6 +1,7 @@
 package io.github.yoonseo.pastellib.utils.tasks
 
 import io.github.yoonseo.pastellib.PastelLib
+import io.github.yoonseo.pastellib.utils.log
 import org.bukkit.Bukkit
 
 enum class TaskType {
@@ -26,20 +27,43 @@ class AsyncPromise<T>(id : Int) : Promise(id){
 
 fun syncRepeating(block : Promise.() -> Unit) : Promise {
     var promise : Promise? = null
-    val id = Bukkit.getScheduler().scheduleSyncRepeatingTask(PastelLib.instance, { block(promise!!) },0,1)
+    val id = Bukkit.getScheduler().scheduleSyncRepeatingTask(PastelLib.instance, {
+        try {
+            block(promise!!)
+        } catch (e : Exception) {
+            log("task#${promise?.id} generated exception")
+            e.printStackTrace()
+            promise?.cancel()
+        } },0,1)
     promise = Promise(id)
     return promise
 }
 
 fun <T> async(block : AsyncPromise<T>.() -> T) : AsyncPromise<T> {
     var promise : AsyncPromise<T>? = null
-    val id = Bukkit.getScheduler().runTaskAsynchronously(PastelLib.instance, Runnable { promise!!.complete(block(promise!!)) }).taskId
+    val id = Bukkit.getScheduler().runTaskAsynchronously(PastelLib.instance, Runnable {
+        try {
+            promise!!.complete(block(promise!!))
+        } catch (e : Exception) {
+            log("task#${promise?.id} generated exception")
+            e.printStackTrace()
+            promise?.cancel()
+        }
+
+    }).taskId
     promise = AsyncPromise(id)
     return promise
 }
 fun later(delay : Long, block : Promise.() -> Unit) : Promise {
     var promise : Promise? = null
-    val id = Bukkit.getScheduler().scheduleSyncDelayedTask(PastelLib.instance, { block(promise!!) },delay)
+    val id = Bukkit.getScheduler().scheduleSyncDelayedTask(PastelLib.instance, {
+        try {
+            block(promise!!)
+        } catch (e : Exception) {
+            log("task#${promise?.id} generated exception")
+            e.printStackTrace()
+            promise?.cancel()
+        } },delay)
     promise = Promise(id)
     return promise
 }

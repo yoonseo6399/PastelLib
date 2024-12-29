@@ -1,6 +1,10 @@
 package io.github.yoonseo.pastellib.utils
 
 import com.google.common.base.Predicate
+import net.kyori.adventure.sound.Sound
+import org.bukkit.EntityEffect
+import org.bukkit.Material
+import org.bukkit.entity.LivingEntity
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import kotlin.reflect.KClass
@@ -25,12 +29,14 @@ sealed class ListOrSingle<T> {
     data class Single<T>(val value: T) : ListOrSingle<T>()
 }
 
-fun Inventory.amountOf(material: org.bukkit.Material): Int =
-    contents.foldRight(0) { item, count -> if(item?.type == material) count + item.amount else count }
-fun Inventory.removeItem(material: org.bukkit.Material, amount: Int,predicate: Predicate<ItemStack> = Predicate { true }): Boolean {
+fun Inventory.amountOf(predicate: Predicate<ItemStack>): Int =
+    contents.foldRight(0) { item, count -> if(item != null && predicate.apply(item)) count + item.amount else count }
+fun Inventory.removeItem(material : Material?, amount: Int,predicate: Predicate<ItemStack> = Predicate { true }): Boolean {
     var remaining = amount
     for ((i,e) in contents.asList().withIndex()) {
-        if(e?.type != material || !predicate.apply(e)) continue
+        if(e == null || !predicate.apply(e)) continue
+        if(material != null && e.type != material) continue
+
         if(e.amount <= remaining) {
             remaining - e.amount
             clear(i)
@@ -59,7 +65,7 @@ fun <T : Any> String.isAssignable(clz : KClass<T>): Boolean {
     }
 }
 @Suppress("UNCHECKED_CAST")
-fun <T : Any> String.toType(clz : KClass<T>): T? {
+fun <T : Any> String.toType(clz : KClass<T>): Any? {
     return when(clz) {
         Int::class -> this.toIntOrNull()
         Long::class -> this.toLongOrNull()
@@ -67,5 +73,14 @@ fun <T : Any> String.toType(clz : KClass<T>): T? {
         String::class -> this
         Boolean::class -> this.toBooleanStrictOrNull()
         else -> null
-    } as? T
+    } as? T?
 }
+
+fun LivingEntity.forceDamage(damage: Double) {
+    if(health - damage <= 0) health = 0.0
+    else health -= damage
+    playEffect(EntityEffect.HURT)
+    hurtSound?.key?.let { location.world.playSound(Sound.sound(it,Sound.Source.PLAYER,1f,1f)) }
+}
+
+fun <T : Collection<*>> T.takeIsNotEmpty() : T? = if(isEmpty()) null else this

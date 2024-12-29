@@ -5,3 +5,7 @@ api-version: '1.21'
 commands:
   sit:
     description: Sit on the floor.
+  gun:
+    description: Hold a gun.
+  task:
+    description: Assign a task to a character.
