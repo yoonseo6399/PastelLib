@@ -16,10 +16,10 @@ class TaskCommand : CommandExecutor {
         if(args.size == 2 && args[0] == "cancel") Bukkit.getScheduler().cancelTask(args[0].toInt())
         if(args.size == 2 && args[0] == "run") {
             log("starting performace test")
-            val time = measureTimeMillis    a {
-                val item = ItemStack(Material.STICK,1)
-                item.dataContainer.addValue("TEST")
-            }
+            //val time = measureTimeMillis    a {
+            //    val item = ItemStack(Material.STICK,1)
+            //    item.dataContainer.addValue("TEST")
+            //}
         }
         return true
     }

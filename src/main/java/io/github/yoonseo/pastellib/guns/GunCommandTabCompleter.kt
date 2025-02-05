@@ -11,9 +11,9 @@ class GunCommandTabCompleter : TabCompleter {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String>?
+        args: Array<out String>
     ): List<String?> {
-        if (sender !is Player || args == null) return emptyList()
+        if (sender !is Player) return emptyList()
 
         val completions = mutableListOf<String>()
 

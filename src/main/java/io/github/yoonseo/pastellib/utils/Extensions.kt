@@ -7,6 +7,9 @@ import org.bukkit.Material
 import org.bukkit.entity.LivingEntity
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import org.bukkit.util.Transformation
+import org.joml.Quaternionf
+import org.joml.Vector3f
 import kotlin.reflect.KClass
 
 sealed class Union<T1,T2>{
@@ -82,5 +85,10 @@ fun LivingEntity.forceDamage(damage: Double) {
     playEffect(EntityEffect.HURT)
     hurtSound?.key?.let { location.world.playSound(Sound.sound(it,Sound.Source.PLAYER,1f,1f)) }
 }
+fun Transformation.cloneSetTranslation(vector: Vector3f): Transformation = Transformation(vector,leftRotation,scale,rightRotation)
+fun Transformation.cloneSetLeftRotation(quaternionf: Quaternionf): Transformation = Transformation(translation,quaternionf,scale,rightRotation)
+fun Transformation.cloneSetRightRotation(quaternionf: Quaternionf): Transformation = Transformation(translation,leftRotation,scale,quaternionf)
+fun Transformation.cloneSetScale(vector: Vector3f): Transformation = Transformation(translation,leftRotation,vector,rightRotation)
+
 
 fun <T : Collection<*>> T.takeIsNotEmpty() : T? = if(isEmpty()) null else this

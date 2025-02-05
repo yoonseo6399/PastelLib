@@ -50,9 +50,9 @@ class Gun(val item: ItemStack) {
                 }
                 @EventHandler
                 fun onInteraction(e: PlayerInteractEvent) {
-                    debug {
-                        if(commandJuho == e.player) log(e.toString())
-                    }
+                    //debug {
+                    //    if(commandJuho == e.player) log(e.toString())
+                    //}
                     triggerGun(e.player)
                 }
                 fun triggerGun(p: Player) {

@@ -37,7 +37,7 @@ class OnSitCommand() : CommandExecutor {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String>?
+        args: Array<out String>
     ): Boolean {
         if(sender !is LivingEntity) return false
         sender.isSitting = true

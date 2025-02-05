@@ -21,10 +21,10 @@ class GunCommand : CommandExecutor {
         sender: CommandSender,
         command: Command,
         label: String,
-        args: Array<out String>?
+        args: Array<out String>
     ): Boolean {
 
-        if(sender !is Player || args == null || args.isEmpty()) return false
+        if(sender !is Player || args.isEmpty()) return false
         var item = ItemStack(Material.STICK,1)
         val meta = item.itemMeta
         meta.displayName(Component.text(args[0]))

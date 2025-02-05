@@ -2,7 +2,6 @@ package io.github.yoonseo.pastellib.utils
 
 import io.papermc.paper.entity.LookAnchor
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.ComponentLike
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
@@ -13,6 +12,9 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import org.bukkit.scoreboard.Criteria
+import org.bukkit.scoreboard.DisplaySlot
+import org.bukkit.scoreboard.Objective
 import java.util.UUID
 
 
@@ -58,9 +60,40 @@ internal fun UUID.toComponent(prefix : Boolean = false) : Component =
 fun Location.toComponent(prefix: Boolean = false) : Component = toComponent(null,prefix)
 
 
-data class DebugScope(val commandJuho : Player?)
+object DebugScope{
+    val commandJuho : Player?
+        get() = Bukkit.getPlayer("command_juho")
+
+    private var objective : Objective = Bukkit.getScoreboardManager().mainScoreboard.getObjective("debug") ?: createScoreboard()
+    private val scoreboardList = hashMapOf<String,Pair<String,Int>>()
+
+    fun resetScoreboard() {
+        objective.unregister()
+    }
+    fun scoreboard(prefix : String, value : Any?,line : Int = -1) {
+
+        //remove previous score;
+        if(scoreboardList.containsKey(prefix)) objective.getScore(scoreboardDisplayName(prefix)).resetScore()
+
+        //add new score;
+        scoreboardList[prefix] = value.toString() to if(line == -1) scoreboardList.keys.size else line
+        objective.getScore(scoreboardDisplayName(prefix)).score = scoreboardList[prefix]!!.second
+    }
+    private fun scoreboardDisplayName(prefix: String): String {
+        return prefix + " : " + scoreboardList[prefix]!!.first
+    }
+    private fun createScoreboard() : Objective {
+        val sc = Bukkit.getScoreboardManager().mainScoreboard
+        sc.registerNewObjective("debug",
+            Criteria.DUMMY, Component.text("Debug!")).apply {
+                displaySlot = DisplaySlot.SIDEBAR
+        }
+        return sc.getObjective("debug")!!
+    }
+
+}
 fun <R : Any?> debug(block : DebugScope.() -> R) {
-    val scope = DebugScope(Bukkit.getPlayer("command_juho"))
+    val scope = DebugScope
     try {
         block(scope)
     } catch (e : Exception) {

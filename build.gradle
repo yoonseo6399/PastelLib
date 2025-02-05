@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'idea'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.21'
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
 
 }
@@ -13,8 +13,8 @@ version = '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
     maven {
-        name = "papermc-repo"
-        url = "https://repo.papermc.io/repository/maven-public/"
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven {
         name = "sonatype"
@@ -23,28 +23,25 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
+    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0-Beta")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
-    implementation("io.github.monun:heartbeat-coroutines:0.0.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
-    implementation("io.github.monun:kommand-api:3.1.7")
-
 }
 
-def targetJavaVersion = 17
+def targetJavaVersion = 21
 java {
-    def javaVersion = JavaVersion.VERSION_17
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = javaVersion.VERSION_17
+    def javaVersion = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = javaVersion.VERSION_21
     if (JavaVersion.current() < javaVersion) {
         toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
 }
 kotlin {
-    targetCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -62,7 +59,7 @@ shadowJar {
     archiveClassifier.set('')
     archiveVersion.set(version.toString())
 
-    destinationDirectory = file("/Users/kang-yoonseo/Desktop/경제서버_시즌_3/plugins")
+    destinationDirectory = file("E:\\Minecrafts\\Server\\PastelLibServer\\plugins")
 }
 
 processResources {
