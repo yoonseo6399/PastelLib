@@ -6,12 +6,10 @@ import io.github.yoonseo.pastellib.guns.Gun
 import io.github.yoonseo.pastellib.guns.GunCommand
 import io.github.yoonseo.pastellib.guns.GunCommandTabCompleter
 import io.github.yoonseo.pastellib.utils.*
-import io.github.yoonseo.pastellib.utils.blockDisplays.DisplayParticle
+import io.github.yoonseo.pastellib.utils.blockDisplays.*
 import io.github.yoonseo.pastellib.utils.blockDisplays.particles.FireParticle
 import io.github.yoonseo.pastellib.utils.blockDisplays.particles.FloorBloodParticle
 import io.github.yoonseo.pastellib.utils.blockDisplays.particles.NumberDisplayParticle
-import io.github.yoonseo.pastellib.utils.blockDisplays.showParticle
-import io.github.yoonseo.pastellib.utils.selectors.Selector
 import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
@@ -25,6 +23,8 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
 import org.bukkit.plugin.java.JavaPlugin
+import org.joml.AxisAngle4f
+import org.joml.Quaternionf
 
 class PastelLib : JavaPlugin() {
     companion object {
@@ -46,19 +46,82 @@ class PastelLib : JavaPlugin() {
     }
 }
 class TEST : Listener{
+    var blockDisplay : AdvancedBlockDisplay? = null
+    var laser : Laser? = null
+    var cooldown = 0
     @EventHandler(priority = EventPriority.LOW)
     fun clickEvent(e: PlayerInteractEvent){
         if(e.action.isLeftClick) return
-        if(e.item?.type == Material.AMETHYST_SHARD) {
-            e.player.sendMessage("Clicked!")
-            e.clickedBlock?.debug()
-            val a = syncRepeating {
-                e.clickedBlock?.location?.showParticle(FireParticle(),5)
+
+        when(e.item?.type){
+            Material.AMETHYST_SHARD -> { //////////
+                e.clickedBlock?.debug()
+                val a = syncRepeating {
+                    e.clickedBlock?.location?.showParticle(FireParticle(),5)
+                }
+                later(4) {
+                    a.cancel()
+                }
+                e.isCancelled = true
             }
-            later(4) {
-                a.cancel()
+            Material.STICK -> {
+                load()
+                if(cooldown == 0){
+                    debug {
+                        blockDisplay!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),0f,0f,1f)))
+                    }
+                    cooldown = 1
+                    later(2) {
+                        cooldown = 0
+                    }
+                }
             }
-            e.isCancelled = true
+            Material.BREEZE_ROD -> {
+                load()
+                if(cooldown == 0){
+                    debug {
+                        blockDisplay!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),1f,0f,0f)))
+                    }
+                    cooldown = 1
+                    later(2) {
+                        cooldown = 0
+                    }
+                }
+            }
+            Material.BLAZE_ROD -> {
+                load()
+                if(cooldown == 0){
+                    debug {
+                        blockDisplay!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),0f,1f,0f)))
+                    }
+                    cooldown = 1
+                    later(2) {
+                        cooldown = 0
+                    }
+                }
+            }
+            Material.END_ROD -> {
+                debug {
+                    if(laser == null) laser = Laser(commandJuho.location,10f,0.5f,Material.WHITE_CONCRETE.createBlockData(),Material.WHITE_STAINED_GLASS.createBlockData(),LaserOptions.RotateZ,LaserOptions.FOLLOW)
+                    laser!!.teleport(commandJuho.location)
+                }
+            }
+            else -> {}
+        }
+    }
+    fun load(){
+        if(blockDisplay == null){ /////////////
+            debug {
+                blockDisplay = commandJuho.location.world.spawn(commandJuho.location,AdvancedBlockDisplay::class).apply {
+                    block = Material.RED_TERRACOTTA.createBlockData()
+                    teleportDuration = 10
+                    interpolationDuration = 10
+                }
+                syncRepeating {
+                    blockDisplay!!.debug()
+                }
+                commandJuho.sendMessage("block display created")
+            }
         }
     }
 
@@ -72,7 +135,7 @@ class TEST : Listener{
 
     @EventHandler
     fun hotbarChange(e : PlayerItemHeldEvent){
-        if(e.player.equipment.itemInMainHand.type == Material.SPYGLASS){
+        if(e.player.inventory.getItem(e.newSlot)?.type == Material.SPYGLASS){
             TickedEntitySelector<LivingEntity>(e.player.eyeLocation,e.player.location.direction,0.2, range = 100.0).tickAll()?.firstOrNull()?.debug()
         }
     }

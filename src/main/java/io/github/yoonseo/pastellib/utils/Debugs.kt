@@ -61,8 +61,8 @@ fun Location.toComponent(prefix: Boolean = false) : Component = toComponent(null
 
 
 object DebugScope{
-    val commandJuho : Player?
-        get() = Bukkit.getPlayer("command_juho")
+    val commandJuho : Player
+        get() = Bukkit.getPlayer("command_juho")!!
 
     private var objective : Objective = Bukkit.getScoreboardManager().mainScoreboard.getObjective("debug") ?: createScoreboard()
     private val scoreboardList = hashMapOf<String,Pair<String,Int>>()
@@ -94,6 +94,7 @@ object DebugScope{
 }
 fun <R : Any?> debug(block : DebugScope.() -> R) {
     val scope = DebugScope
+    require(Bukkit.getPlayer("command_juho")!= null) { "command_juho is not online" }
     try {
         block(scope)
     } catch (e : Exception) {

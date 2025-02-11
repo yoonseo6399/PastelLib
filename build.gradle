@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'idea'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'org.jetbrains.kotlin.jvm' version '2.0.21'
+    id 'org.jetbrains.kotlin.jvm' version '2.1.10'
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
 
 }
@@ -52,9 +52,6 @@ tasks.withType(JavaCompile).configureEach {
 
 shadowJar {
 
-    dependencies {
-        exclude('io.github.monun:kommand-api:3.1.7')
-    }
     archiveBaseName.set('PastelPlugin')
     archiveClassifier.set('')
     archiveVersion.set(version.toString())

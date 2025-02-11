@@ -3,6 +3,7 @@ package io.github.yoonseo.pastellib.utils
 import com.google.common.base.Predicate
 import net.kyori.adventure.sound.Sound
 import org.bukkit.EntityEffect
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.LivingEntity
 import org.bukkit.inventory.Inventory
@@ -31,6 +32,7 @@ sealed class ListOrSingle<T> {
     data class List<T>(val values: List<T>) : ListOrSingle<T>()
     data class Single<T>(val value: T) : ListOrSingle<T>()
 }
+infix fun Location.lookVector(location : Location) = location.toVector().subtract(this.toVector())
 
 fun Inventory.amountOf(predicate: Predicate<ItemStack>): Int =
     contents.foldRight(0) { item, count -> if(item != null && predicate.apply(item)) count + item.amount else count }
@@ -83,7 +85,7 @@ fun LivingEntity.forceDamage(damage: Double) {
     if(health - damage <= 0) health = 0.0
     else health -= damage
     playEffect(EntityEffect.HURT)
-    hurtSound?.key?.let { location.world.playSound(Sound.sound(it,Sound.Source.PLAYER,1f,1f)) }
+    hurtSound?.let { location.world.playSound(Sound.sound(it,Sound.Source.PLAYER,1f,1f)) }
 }
 fun Transformation.cloneSetTranslation(vector: Vector3f): Transformation = Transformation(vector,leftRotation,scale,rightRotation)
 fun Transformation.cloneSetLeftRotation(quaternionf: Quaternionf): Transformation = Transformation(translation,quaternionf,scale,rightRotation)
