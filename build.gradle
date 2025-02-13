@@ -1,9 +1,14 @@
+import xyz.jpenilla.runtask.task.AbstractRun
+
 plugins {
     id 'java'
     id 'idea'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'org.jetbrains.kotlin.jvm' version '2.1.10'
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
+
+
+    id("xyz.jpenilla.run-paper") version "2.3.1"
 
 }
 
@@ -56,7 +61,7 @@ shadowJar {
     archiveClassifier.set('')
     archiveVersion.set(version.toString())
 
-    destinationDirectory = file("E:\\Minecrafts\\Server\\PastelLibServer\\plugins")
+    destinationDirectory = file("run/plugins")
 }
 
 processResources {
@@ -66,4 +71,20 @@ processResources {
     filesMatching('plugin.yml') {
         expand props
     }
+}
+
+tasks {
+    runServer {
+        // Configure the Minecraft version for our task.
+        // This is the only required configuration besides applying the plugin.
+        // Your plugin's jar (or shadowJar if present) will be used automatically.
+        minecraftVersion("1.21.4")
+    }
+}
+tasks.withType(AbstractRun.class).configureEach {
+    javaLauncher.set(javaToolchains.launcherFor {
+        vendor.set(JvmVendorSpec.JETBRAINS)
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }.get())
+    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }

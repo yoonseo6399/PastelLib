@@ -32,7 +32,35 @@ sealed class ListOrSingle<T> {
     data class List<T>(val values: List<T>) : ListOrSingle<T>()
     data class Single<T>(val value: T) : ListOrSingle<T>()
 }
-infix fun Location.lookVector(location : Location) = location.toVector().subtract(this.toVector())
+
+class WhenBlock<T : Comparable<T>>{
+    val branches = hashMapOf<ClosedRange<T>,Runnable>()
+    var lastSuccess = false
+    val default : Runnable? = null
+    fun execute(that : T){
+        for(branch in branches){
+            if(branch.key.contains(that)){
+                branch.value.run()
+                lastSuccess = true
+            }
+        }
+        if (!lastSuccess) default?.run()
+    }
+    fun inRange(range : ClosedRange<T>,runnable: Runnable){
+        branches[range] = runnable
+    }
+    fun default(runnable: Runnable){
+        runnable.run()
+    }
+}
+fun <T : Comparable<T>> whenR(that : T, whenBlock : WhenBlock<T>.() -> Unit){
+    val block = WhenBlock<T>()
+    block.whenBlock()
+    block.execute(that)
+}
+
+
+infix fun Location.lookVector(location : Location) = location.toVector().subtract(this.toVector()).normalize()
 
 fun Inventory.amountOf(predicate: Predicate<ItemStack>): Int =
     contents.foldRight(0) { item, count -> if(item != null && predicate.apply(item)) count + item.amount else count }

@@ -14,8 +14,10 @@ import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import org.bukkit.Bukkit
+import org.bukkit.EntityEffect
 import org.bukkit.Material
 import org.bukkit.entity.LivingEntity
+import org.bukkit.entity.Warden
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -47,7 +49,7 @@ class PastelLib : JavaPlugin() {
 }
 class TEST : Listener{
     var blockDisplay : AdvancedBlockDisplay? = null
-    var laser : Laser? = null
+    var laser by nullIf<Laser> { it?.isDead }
     var cooldown = 0
     @EventHandler(priority = EventPriority.LOW)
     fun clickEvent(e: PlayerInteractEvent){
@@ -102,8 +104,22 @@ class TEST : Listener{
             }
             Material.END_ROD -> {
                 debug {
-                    if(laser == null) laser = Laser(commandJuho.location,10f,0.5f,Material.WHITE_CONCRETE.createBlockData(),Material.WHITE_STAINED_GLASS.createBlockData(),LaserOptions.RotateZ,LaserOptions.FOLLOW)
+                    if(laser == null) laser = Laser(commandJuho.location,10f,0.5f,Material.WHITE_CONCRETE.createBlockData(),Material.WHITE_STAINED_GLASS.createBlockData(),LaserOptions.RotateZ,LaserOptions.FOLLOW,LaserOptions.LIGHT_EMIT)
                     laser!!.teleport(commandJuho.location)
+                }
+            }
+            Material.REDSTONE_TORCH -> {
+                debug {
+                    val a = commandJuho.location.world.spawn(commandJuho.location,Warden::class.java)
+                    later(20) {
+                        a.playEffect(EntityEffect.WARDEN_ATTACK)
+                        later(20) {
+                            a.playEffect(EntityEffect.WARDEN_SONIC_ATTACK)
+                            later(20) {
+                                a.playEffect(EntityEffect.WARDEN_TENDRIL_SHAKE)
+                            }
+                        }
+                    }
                 }
             }
             else -> {}
@@ -115,6 +131,7 @@ class TEST : Listener{
                 blockDisplay = commandJuho.location.world.spawn(commandJuho.location,AdvancedBlockDisplay::class).apply {
                     block = Material.RED_TERRACOTTA.createBlockData()
                     teleportDuration = 10
+                    interpolationDelay = 0
                     interpolationDuration = 10
                 }
                 syncRepeating {

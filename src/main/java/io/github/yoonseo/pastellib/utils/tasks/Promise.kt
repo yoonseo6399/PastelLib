@@ -11,10 +11,16 @@ enum class TaskType {
 open class Promise(val id : Int,val type : TaskType = TaskType.Undefined) {
     var isCanceled = false
         internal set
+    var timeout = -1
     fun cancel() {
         if(isCanceled) throw IllegalStateException("Task is already canceled")
         Bukkit.getScheduler().cancelTask(id)
         isCanceled = true
+    }
+    fun setTimeout(time : Int) : Promise {
+        TODO()
+        timeout = time
+        return this
     }
 }
 class AsyncPromise<T>(id : Int) : Promise(id){
