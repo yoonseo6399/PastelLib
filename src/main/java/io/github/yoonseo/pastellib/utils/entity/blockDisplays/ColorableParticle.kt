@@ -1,4 +1,4 @@
-package io.github.yoonseo.pastellib.utils.blockDisplays
+package io.github.yoonseo.pastellib.utils.entity.blockDisplays
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Color

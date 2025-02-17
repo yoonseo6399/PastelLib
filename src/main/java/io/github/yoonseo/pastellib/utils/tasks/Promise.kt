@@ -3,6 +3,8 @@ package io.github.yoonseo.pastellib.utils.tasks
 import io.github.yoonseo.pastellib.PastelLib
 import io.github.yoonseo.pastellib.utils.log
 import org.bukkit.Bukkit
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 enum class TaskType {
     RayCast, Continual, WaitForCondition, Undefined
@@ -73,5 +75,7 @@ fun later(delay : Long, block : Promise.() -> Unit) : Promise {
     promise = Promise(id)
     return promise
 }
+fun later(delay : Duration, block : Promise.() -> Unit) : Promise = later(delay.toTicks(), block)
+fun Duration.toTicks() : Long = this.toLong(DurationUnit.MILLISECONDS)/50
 
 fun <R> eventual(callback: (R) -> Unit,block: Promise.() -> R?) : Promise = syncRepeating { block(this)?.let { callback(it) } }

@@ -1,5 +1,5 @@
-package io.github.yoonseo.pastellib.utils.blockDisplays
-import io.github.yoonseo.pastellib.utils.blockDisplays.particles.LightParticle
+package io.github.yoonseo.pastellib.utils.entity.blockDisplays
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.LightParticle
 import io.github.yoonseo.pastellib.utils.cloneSetScale
 import io.github.yoonseo.pastellib.utils.cloneSetTranslation
 import io.github.yoonseo.pastellib.utils.debug
@@ -8,8 +8,10 @@ import io.github.yoonseo.pastellib.utils.selectors.Ray
 import io.github.yoonseo.pastellib.utils.selectors.rayTo
 import io.github.yoonseo.pastellib.utils.tasks.Promise
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
+import io.papermc.paper.entity.TeleportFlag
 import org.bukkit.*
 import org.bukkit.block.data.BlockData
+import org.bukkit.entity.Display
 import org.bukkit.util.Vector
 import org.joml.*
 
@@ -17,6 +19,49 @@ import org.joml.*
 enum class LaserOptions{
     RotateZ,FOLLOW,LENGTH_FOLLOW,LIGHT_EMIT
 }
+interface ModelPart{
+    fun rotate(quaternionf: Quaternionf)
+    fun teleport(location: Location)
+}
+interface ModelModule{
+
+}
+class Model(val mainDisplay : AdvancedBlockDisplay) {
+    val isDead : Boolean
+        get() = mainDisplay.isDead || mainDisplay.passengers.any { isDead }
+
+    val parts : List<ModelPart> by lazy { mainDisplay.passengers.mapNotNull { it as? ModelPart } }
+    val modules = ArrayList<ModelModule>()
+
+    fun attachModule(module : ModelModule){
+        modules.add(module)
+    }
+
+
+    fun teleport(location: Location){
+        mainDisplay.teleport(location, TeleportFlag.EntityState.RETAIN_PASSENGERS)
+        mainDisplay.passengers.forEach {
+            it.teleport(location,TeleportFlag.EntityState.RETAIN_VEHICLE)
+        }
+    }
+
+
+    fun validate() : Boolean {
+        return mainDisplay.passengers.all { it is Display || it is ModelPart }
+    }
+}
+class Models {
+    val LASER = Laser()
+}
+
+
+
+
+
+
+
+
+
 class Laser(spawnLocation : Location, length : Float, size : Float, inner : BlockData, outer : BlockData, vararg options: LaserOptions) {
 
     private val inner : AdvancedBlockDisplay
@@ -40,14 +85,14 @@ class Laser(spawnLocation : Location, length : Float, size : Float, inner : Bloc
         }
     //Z 축을 레이져 길이로 설정
     init {
-        this.inner = spawnLocation.world.spawn(spawnLocation,AdvancedBlockDisplay::class).apply {
+        this.inner = AdvancedBlockDisplay.spawn(spawnLocation).apply {
             block = inner
             val size2 = (size * 0.75).toFloat()
             transformation = TransformationBuilder().scale(size2,size2,length).translate(-(size2/2),-(size2/2),0f).build()
             teleportDuration = 5
             interpolationDuration = 1
         }
-        this.outer = spawnLocation.world.spawn(spawnLocation,AdvancedBlockDisplay::class).apply {
+        this.outer = AdvancedBlockDisplay.spawn(spawnLocation).apply {
             block = outer
             transformation = TransformationBuilder().scale(size,size,length).translate(-size/2,-size/2,0f).build()
             teleportDuration = 5
@@ -104,6 +149,7 @@ class Laser(spawnLocation : Location, length : Float, size : Float, inner : Bloc
     fun rayTrace() {
 
     }
+
 }
 
 

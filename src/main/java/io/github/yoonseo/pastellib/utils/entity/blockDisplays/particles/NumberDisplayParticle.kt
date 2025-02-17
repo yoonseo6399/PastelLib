@@ -1,18 +1,14 @@
-package io.github.yoonseo.pastellib.utils.blockDisplays.particles
+package io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles
 
-import io.github.yoonseo.pastellib.utils.blockDisplays.DisplayParticle
-import io.github.yoonseo.pastellib.utils.blockDisplays.randomVector
-import io.github.yoonseo.pastellib.utils.debug
-import io.github.yoonseo.pastellib.utils.toComponent
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.DisplayParticle
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.randomVector
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.TextColor
 import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.entity.Display
 import org.bukkit.entity.TextDisplay
 import org.bukkit.util.Vector
-import org.w3c.dom.Text
 
 class NumberDisplayParticle(var number: Double) : DisplayParticle<TextDisplay>() {
     override val expiresAt: Int = 30

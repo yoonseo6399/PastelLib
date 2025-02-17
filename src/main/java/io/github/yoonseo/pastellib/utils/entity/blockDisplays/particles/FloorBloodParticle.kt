@@ -1,19 +1,16 @@
-package io.github.yoonseo.pastellib.utils.blockDisplays.particles
+package io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles
 
-import io.github.yoonseo.pastellib.utils.blockDisplays.DisplayParticle
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.DisplayParticle
 import io.github.yoonseo.pastellib.utils.cloneSetScale
 import io.github.yoonseo.pastellib.utils.cloneSetTranslation
 import io.github.yoonseo.pastellib.utils.debug
-import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.BlockDisplay
-import org.bukkit.entity.Display
 import org.bukkit.util.Transformation
 import org.bukkit.util.Vector
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import kotlin.math.log10
 import kotlin.math.log2
 
 class FloorBloodParticle(private var bloodAmount: Double) : DisplayParticle<BlockDisplay>() {

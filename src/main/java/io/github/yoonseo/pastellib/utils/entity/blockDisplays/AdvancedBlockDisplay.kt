@@ -1,4 +1,4 @@
-package io.github.yoonseo.pastellib.utils.blockDisplays
+package io.github.yoonseo.pastellib.utils.entity.blockDisplays
 
 import org.bukkit.Color
 import org.bukkit.Location
@@ -11,8 +11,13 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.reflect.KClass
 
-open class AdvancedBlockDisplay(location: Location, initializer: BlockDisplay.() -> Unit = {}) : BlockDisplay by location.world.spawn(location,
-    BlockDisplay::class.java) {
+open class AdvancedBlockDisplay protected constructor(display: BlockDisplay, initializer: BlockDisplay.() -> Unit = {}) : BlockDisplay by display {
+    companion object {
+        fun spawn(location: Location, initializer: BlockDisplay.() -> Unit = {}) : AdvancedBlockDisplay {
+            val display = location.world.spawn(location, BlockDisplay::class.java)
+            return AdvancedBlockDisplay(display, initializer)
+        }
+    }
     init {
         this.initializer()
     }
@@ -29,6 +34,8 @@ open class AdvancedBlockDisplay(location: Location, initializer: BlockDisplay.()
         matrix.setTranslation(rotationMatrix.transform(translation))
         setTransformationMatrix(matrix)
     }
+
+
     fun debug(){
         val x = Vector3f(1f, 0f, 0f)
         val y = Vector3f(0f, 1f, 0f)
@@ -60,5 +67,3 @@ open class AdvancedBlockDisplay(location: Location, initializer: BlockDisplay.()
         }
     }
 }
-
-fun World.spawn(location : Location, clazz : KClass<AdvancedBlockDisplay>) = AdvancedBlockDisplay(location)

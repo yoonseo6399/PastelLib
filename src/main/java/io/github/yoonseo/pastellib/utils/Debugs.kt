@@ -1,22 +1,26 @@
 package io.github.yoonseo.pastellib.utils
 
+import io.github.yoonseo.pastellib.PastelLib
 import io.papermc.paper.entity.LookAnchor
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.block.Block
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scoreboard.Criteria
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
-import java.util.UUID
-
+import java.util.*
 
 
 fun log(message: Component) {
@@ -90,7 +94,20 @@ object DebugScope{
         }
         return sc.getObjective("debug")!!
     }
-
+    fun executeOnItem(material: Material,block: (PlayerInteractEvent) -> Unit){
+        Bukkit.getPluginManager().registerEvents(object : Listener {
+            @EventHandler
+            fun onInteract(e: PlayerInteractEvent) {
+                if(e.item != null && e.item!!.type == material) block(e)
+                commandJuho.sendActionBar(Component.text("Debug, Requested by ${getWhoExecuting().methodName}"))
+            }
+        },PastelLib.instance)
+    }
+    private fun getWhoExecuting() : StackTraceElement {
+        val stackTrace = Thread.currentThread().stackTrace
+        val element = stackTrace[2]
+        return element
+    }
 }
 fun <R : Any?> debug(block : DebugScope.() -> R) {
     val scope = DebugScope

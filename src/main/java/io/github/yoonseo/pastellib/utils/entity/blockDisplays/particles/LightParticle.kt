@@ -1,12 +1,10 @@
-package io.github.yoonseo.pastellib.utils.blockDisplays.particles
+package io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles
 
-import io.github.yoonseo.pastellib.utils.blockDisplays.ColorableParticle
-import io.github.yoonseo.pastellib.utils.blockDisplays.DisplayParticle
-import io.github.yoonseo.pastellib.utils.blockDisplays.randomNegativedInclude
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.ColorableParticle
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.randomNegativedInclude
 import io.github.yoonseo.pastellib.utils.interpolate
 import io.github.yoonseo.pastellib.utils.whenR
 import org.bukkit.Color
-import org.bukkit.entity.TextDisplay
 import org.bukkit.util.Vector
 
 

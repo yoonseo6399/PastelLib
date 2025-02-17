@@ -6,18 +6,16 @@ import io.github.yoonseo.pastellib.guns.Gun
 import io.github.yoonseo.pastellib.guns.GunCommand
 import io.github.yoonseo.pastellib.guns.GunCommandTabCompleter
 import io.github.yoonseo.pastellib.utils.*
-import io.github.yoonseo.pastellib.utils.blockDisplays.*
-import io.github.yoonseo.pastellib.utils.blockDisplays.particles.FireParticle
-import io.github.yoonseo.pastellib.utils.blockDisplays.particles.FloorBloodParticle
-import io.github.yoonseo.pastellib.utils.blockDisplays.particles.NumberDisplayParticle
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.*
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.FireParticle
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.FloorBloodParticle
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.NumberDisplayParticle
 import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import org.bukkit.Bukkit
-import org.bukkit.EntityEffect
 import org.bukkit.Material
 import org.bukkit.entity.LivingEntity
-import org.bukkit.entity.Warden
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -25,8 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
 import org.bukkit.plugin.java.JavaPlugin
-import org.joml.AxisAngle4f
-import org.joml.Quaternionf
+
 
 class PastelLib : JavaPlugin() {
     companion object {
@@ -39,6 +36,11 @@ class PastelLib : JavaPlugin() {
         getCommand("gun")?.also { it.tabCompleter = GunCommandTabCompleter() }?.setExecutor(GunCommand())
         getCommand("task")?.setExecutor(TaskCommand())
         Bukkit.getPluginManager().registerEvents(TEST(),this)
+        debug {
+            executeOnItem(Material.STICK){
+
+            }
+        }
     }
     override fun onDisable() {
         // Plugin shutdown logic
@@ -66,81 +68,16 @@ class TEST : Listener{
                 }
                 e.isCancelled = true
             }
-            Material.STICK -> {
-                load()
-                if(cooldown == 0){
-                    debug {
-                        blockDisplay!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),0f,0f,1f)))
-                    }
-                    cooldown = 1
-                    later(2) {
-                        cooldown = 0
-                    }
-                }
-            }
-            Material.BREEZE_ROD -> {
-                load()
-                if(cooldown == 0){
-                    debug {
-                        blockDisplay!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),1f,0f,0f)))
-                    }
-                    cooldown = 1
-                    later(2) {
-                        cooldown = 0
-                    }
-                }
-            }
-            Material.BLAZE_ROD -> {
-                load()
-                if(cooldown == 0){
-                    debug {
-                        blockDisplay!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),0f,1f,0f)))
-                    }
-                    cooldown = 1
-                    later(2) {
-                        cooldown = 0
-                    }
-                }
-            }
             Material.END_ROD -> {
                 debug {
                     if(laser == null) laser = Laser(commandJuho.location,10f,0.5f,Material.WHITE_CONCRETE.createBlockData(),Material.WHITE_STAINED_GLASS.createBlockData(),LaserOptions.RotateZ,LaserOptions.FOLLOW,LaserOptions.LIGHT_EMIT)
                     laser!!.teleport(commandJuho.location)
                 }
             }
-            Material.REDSTONE_TORCH -> {
-                debug {
-                    val a = commandJuho.location.world.spawn(commandJuho.location,Warden::class.java)
-                    later(20) {
-                        a.playEffect(EntityEffect.WARDEN_ATTACK)
-                        later(20) {
-                            a.playEffect(EntityEffect.WARDEN_SONIC_ATTACK)
-                            later(20) {
-                                a.playEffect(EntityEffect.WARDEN_TENDRIL_SHAKE)
-                            }
-                        }
-                    }
-                }
-            }
             else -> {}
         }
     }
-    fun load(){
-        if(blockDisplay == null){ /////////////
-            debug {
-                blockDisplay = commandJuho.location.world.spawn(commandJuho.location,AdvancedBlockDisplay::class).apply {
-                    block = Material.RED_TERRACOTTA.createBlockData()
-                    teleportDuration = 10
-                    interpolationDelay = 0
-                    interpolationDuration = 10
-                }
-                syncRepeating {
-                    blockDisplay!!.debug()
-                }
-                commandJuho.sendMessage("block display created")
-            }
-        }
-    }
+
 
     @EventHandler
     fun hurtEvent(e : EntityDamageEvent){

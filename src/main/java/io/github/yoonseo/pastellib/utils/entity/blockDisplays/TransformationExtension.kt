@@ -1,4 +1,4 @@
-package io.github.yoonseo.pastellib.utils.blockDisplays
+package io.github.yoonseo.pastellib.utils.entity.blockDisplays
 
 import org.bukkit.util.Transformation
 import org.joml.Matrix3f
