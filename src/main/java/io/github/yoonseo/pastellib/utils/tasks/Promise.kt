@@ -33,7 +33,7 @@ class AsyncPromise<T>(id : Int) : Promise(id){
     }
 }
 
-fun syncRepeating(block : Promise.() -> Unit) : Promise {
+fun syncRepeating(interval: Long = 1,block : Promise.() -> Unit) : Promise {
     var promise : Promise? = null
     val id = Bukkit.getScheduler().scheduleSyncRepeatingTask(PastelLib.instance, {
         try {
@@ -42,7 +42,7 @@ fun syncRepeating(block : Promise.() -> Unit) : Promise {
             log("task#${promise?.id} generated exception")
             e.printStackTrace()
             promise?.cancel()
-        } },0,1)
+        } },0,interval)
     promise = Promise(id)
     return promise
 }

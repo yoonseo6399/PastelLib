@@ -1,42 +1,46 @@
 package io.github.yoonseo.pastellib.utils.entity.blockDisplays
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.LightParticle
-import io.github.yoonseo.pastellib.utils.cloneSetScale
-import io.github.yoonseo.pastellib.utils.cloneSetTranslation
-import io.github.yoonseo.pastellib.utils.debug
-import io.github.yoonseo.pastellib.utils.lookVector
-import io.github.yoonseo.pastellib.utils.selectors.Ray
-import io.github.yoonseo.pastellib.utils.selectors.rayTo
 import io.github.yoonseo.pastellib.utils.tasks.Promise
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
+import io.github.yoonseo.pastellib.utils.tasks.toTicks
 import io.papermc.paper.entity.TeleportFlag
 import org.bukkit.*
-import org.bukkit.block.data.BlockData
+import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.Display
-import org.bukkit.util.Vector
 import org.joml.*
+import kotlin.time.Duration
 
 
-enum class LaserOptions{
-    RotateZ,FOLLOW,LENGTH_FOLLOW,LIGHT_EMIT
-}
 interface ModelPart{
     fun rotate(quaternionf: Quaternionf)
     fun teleport(location: Location)
 }
 interface ModelModule{
-
+    fun onAttach(model: Model)
+    fun onDetach(model: Model)
 }
-class Model(val mainDisplay : AdvancedBlockDisplay) {
+
+
+class Model(val mainDisplay: BlockDisplay) {
     val isDead : Boolean
         get() = mainDisplay.isDead || mainDisplay.passengers.any { isDead }
-
-    val parts : List<ModelPart> by lazy { mainDisplay.passengers.mapNotNull { it as? ModelPart } }
+    val parts : List<ModelPart>
     val modules = ArrayList<ModelModule>()
 
     fun attachModule(module : ModelModule){
         modules.add(module)
+        module.onAttach(this)
+    }
+    fun detachModule(model: Model,module: ModelModule) : Boolean{
+        module.onDetach(this)
+        return modules.remove(module)
     }
 
+    fun remove(){
+        for (passenger in mainDisplay.passengers) {
+            passenger.remove()
+        }
+        mainDisplay.remove()
+    }
 
     fun teleport(location: Location){
         mainDisplay.teleport(location, TeleportFlag.EntityState.RETAIN_PASSENGERS)
@@ -45,111 +49,21 @@ class Model(val mainDisplay : AdvancedBlockDisplay) {
         }
     }
 
-
     fun validate() : Boolean {
         return mainDisplay.passengers.all { it is Display || it is ModelPart }
     }
 }
-class Models {
-    val LASER = Laser()
+
+class ValidationModule(val checkInterval : Int) : ModelModule {
+    lateinit var task : Promise
+    override fun onAttach(model: Model) {
+        task = syncRepeating(interval = checkInterval.toLong()) {
+            if(model.validate() || model.isDead) model.remove()
+        }
+    }
+
+    override fun onDetach(model: Model) {
+        task.cancel()
+    }
 }
-
-
-
-
-
-
-
-
-
-class Laser(spawnLocation : Location, length : Float, size : Float, inner : BlockData, outer : BlockData, vararg options: LaserOptions) {
-
-    private val inner : AdvancedBlockDisplay
-    private val outer : AdvancedBlockDisplay
-    private lateinit var selfTickingTask : Promise
-    val isDead : Boolean
-        get() = inner.isDead
-    val ray : Ray
-        get() = inner.location.rayTo(inner.location.add(direction.multiply(length)))
-    val direction : Vector
-        get() = this.inner.location.direction.normalize()
-    var length : Float = length
-        set(value) {
-            field = value
-            updateTransformation()
-        }
-    var size : Float = size
-        set(value) {
-            field = value
-            updateTransformation()
-        }
-    //Z 축을 레이져 길이로 설정
-    init {
-        this.inner = AdvancedBlockDisplay.spawn(spawnLocation).apply {
-            block = inner
-            val size2 = (size * 0.75).toFloat()
-            transformation = TransformationBuilder().scale(size2,size2,length).translate(-(size2/2),-(size2/2),0f).build()
-            teleportDuration = 5
-            interpolationDuration = 1
-        }
-        this.outer = AdvancedBlockDisplay.spawn(spawnLocation).apply {
-            block = outer
-            transformation = TransformationBuilder().scale(size,size,length).translate(-size/2,-size/2,0f).build()
-            teleportDuration = 5
-            interpolationDuration = 1
-        }
-        selfTickingTask = syncRepeating {
-            if(options.isNotEmpty()) for(option in options) when(option){
-                LaserOptions.RotateZ -> rotate(Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 10f))
-                LaserOptions.FOLLOW -> debug {
-                    this@Laser.setDirection(this@Laser.inner.location lookVector commandJuho.eyeLocation)
-                }
-                LaserOptions.LENGTH_FOLLOW -> debug {
-                    this@Laser.length = commandJuho.eyeLocation.distance(this@Laser.inner.location).toFloat()
-                }
-                LaserOptions.LIGHT_EMIT -> {
-                    for (loc in ray){
-                        if(Math.random() <= 0.1) loc.add(randomVector().multiply(0.2)).showParticle(LightParticle())
-                    }
-                }
-            }
-            if(this@Laser.inner.isDead) remove()
-        }
-    }
-
-    fun teleport(location : Location){
-        inner.teleport(location)
-        outer.teleport(location)
-    }
-    private fun updateTransformation(){
-
-        val size2 = (size * 0.75).toFloat()
-        val matrix = inner.transformation.toMatrix4f()
-        val rotationMatrix = Matrix3f()
-        matrix.get3x3(rotationMatrix)
-        val innerT = rotationMatrix.transform(Vector3f(-(size2/2),-(size2/2),0f))
-        val outerT = rotationMatrix.transform(Vector3f(-size/2,-size/2,0f))
-
-        inner.transformation = inner.transformation.cloneSetScale(Vector3f(size2,size2,length)).cloneSetTranslation(innerT)
-        outer.transformation = outer.transformation.cloneSetScale(Vector3f(size,size,length)).cloneSetTranslation(outerT)
-    }
-    fun setDirection(direction : Vector){
-        teleport(inner.location.setDirection(direction))
-    }
-    private fun rotate(quaternionf: Quaternionf){
-        inner.rotate(quaternionf)
-        outer.rotate(quaternionf)
-    }
-    fun remove(){
-        inner.remove()
-        outer.remove()
-        selfTickingTask.cancel()
-    }
-
-    fun rayTrace() {
-
-    }
-
-}
-
 
