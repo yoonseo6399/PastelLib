@@ -120,5 +120,10 @@ fun Transformation.cloneSetLeftRotation(quaternionf: Quaternionf): Transformatio
 fun Transformation.cloneSetRightRotation(quaternionf: Quaternionf): Transformation = Transformation(translation,leftRotation,scale,quaternionf)
 fun Transformation.cloneSetScale(vector: Vector3f): Transformation = Transformation(translation,leftRotation,vector,rightRotation)
 
+fun Transformation.mapScale(block : (Vector3f) -> Vector3f): Transformation = Transformation(translation, leftRotation, block(scale), rightRotation)
+fun Transformation.mapTranslation(block : (Vector3f) -> Vector3f): Transformation = Transformation(block(translation), leftRotation, scale, rightRotation)
+fun Transformation.mapLeftRotation(block : (Quaternionf) -> Quaternionf): Transformation = Transformation(translation, block(leftRotation), scale, rightRotation)
+fun Transformation.mapRightRotation(block : (Quaternionf) -> Quaternionf): Transformation = Transformation(translation, leftRotation, scale, block(rightRotation))
+
 
 fun <T : Collection<*>> T.takeIsNotEmpty() : T? = if(isEmpty()) null else this

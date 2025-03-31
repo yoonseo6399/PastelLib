@@ -9,17 +9,17 @@ interface Renderer<T,R> {
     fun render(location: Location, data : T) : R
 }
 
-class ModelRenderer : Renderer<List<DisplayData>, Model> {
-    override fun render(location: Location, data: List<DisplayData>): Model {
+class ModelRenderer<T : Display> : Renderer<List<DisplayData>, Model<T>> {
+    override fun render(location: Location, data: List<DisplayData>): Model<T> {
         val main = location.world.spawn(location, BlockDisplay::class.java)
         for (displayData in data) {
             main.addPassenger(DisplayRenderer().render(location,displayData))
         }
-        return Model(main)
+        return Model(main, data)
     }
 }
 
-class DisplayRenderer() : Renderer<DisplayData, Display> {
+class DisplayRenderer : Renderer<DisplayData, Display> {
     override fun render(location: Location, data: DisplayData): Display {
         return when(data){
             is DisplayData.Text -> TextDisplayRenderer.render(location, data)
@@ -28,9 +28,9 @@ class DisplayRenderer() : Renderer<DisplayData, Display> {
     }
 }
 
-object BlockDisplayRenderer : Renderer<DisplayData.Block, AdvancedBlockDisplay> {
-    override fun render(location: Location, data: DisplayData.Block): AdvancedBlockDisplay {
-        return AdvancedBlockDisplay.spawn(location) {
+object BlockDisplayRenderer : Renderer<DisplayData.Block, BlockDisplay> {
+    override fun render(location: Location, data: DisplayData.Block): BlockDisplay {
+        return location.world.spawn(location,BlockDisplay::class.java).apply {
             block = data.blockData
             transformation = data.transformation
             teleportDuration = data.teleportDuration

@@ -15,8 +15,10 @@ open class AdvancedBlockDisplay protected constructor(display: BlockDisplay, ini
     companion object {
         fun spawn(location: Location, initializer: BlockDisplay.() -> Unit = {}) : AdvancedBlockDisplay {
             val display = location.world.spawn(location, BlockDisplay::class.java)
+
             return AdvancedBlockDisplay(display, initializer)
         }
+        fun getBy(blockDisplay: BlockDisplay) = AdvancedBlockDisplay(blockDisplay)
     }
     init {
         this.initializer()
@@ -27,7 +29,6 @@ open class AdvancedBlockDisplay protected constructor(display: BlockDisplay, ini
         val rotation = Matrix3f()
         Matrix4f(matrix).invert().get3x3(rotation)
         translation = rotation.transform(translation)
-
         matrix.rotate(quaternionf)
         val rotationMatrix = Matrix3f()
         matrix.get3x3(rotationMatrix)

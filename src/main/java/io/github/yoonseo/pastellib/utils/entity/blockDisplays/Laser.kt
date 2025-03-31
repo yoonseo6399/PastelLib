@@ -1,27 +1,56 @@
 package io.github.yoonseo.pastellib.utils.entity.blockDisplays
 
-import io.github.yoonseo.pastellib.utils.cloneSetScale
-import io.github.yoonseo.pastellib.utils.cloneSetTranslation
-import io.github.yoonseo.pastellib.utils.debug
+import io.github.yoonseo.pastellib.utils.*
 import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.LightParticle
-import io.github.yoonseo.pastellib.utils.lookVector
 import io.github.yoonseo.pastellib.utils.selectors.Ray
 import io.github.yoonseo.pastellib.utils.selectors.rayTo
 import io.github.yoonseo.pastellib.utils.tasks.Promise
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import org.bukkit.Location
 import org.bukkit.block.data.BlockData
+import org.bukkit.entity.BlockDisplay
 import org.bukkit.util.Vector
 import org.joml.Math
 import org.joml.Matrix3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
+
+
+class LaserSizeModule : SizeModule<BlockDisplay>{
+    var model : DisplayModel? = null
+    override var baseSize: MutableMap<BlockDisplay, Vector3f> = mutableMapOf()
+
+    override fun size(x: Float, y: Float, z: Float) {
+        require(model != null) { "Module is not attached yet" }
+        val displays = model!!.displays
+
+        for (display in displays) {
+            display.transformation = display.transformation.cloneSetScale(Vector3f(baseSize[display]!!).mul(x,y,z))
+        }
+    }
+
+    override fun proportionalSize(x: Float, y: Float, z: Float) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onAttach(model: DisplayModel) {
+        this.model = model
+        model.displays.forEach {
+            baseSize[it] = it.transformation.scale
+        }
+    }
+
+    override fun onDetach(model: DisplayModel) { //should I return model state to normal?
+        this.model = null
+    }
+}
+
 class Laser(spawnLocation : Location, length : Float, size : Float, inner : BlockData, outer : BlockData, vararg options: LaserOptions) {
 
     private val inner : AdvancedBlockDisplay
     private val outer : AdvancedBlockDisplay
-    private lateinit var selfTickingTask : Promise
+    private var selfTickingTask : Promise
     val isDead : Boolean
         get() = inner.isDead
     val ray : Ray

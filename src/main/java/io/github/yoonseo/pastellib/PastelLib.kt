@@ -13,8 +13,12 @@ import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.NumberDi
 import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -23,11 +27,24 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.util.Transformation
+import org.joml.Quaternionf
+import org.joml.Vector3f
 
 
 class PastelLib : JavaPlugin() {
     companion object {
         lateinit var instance: PastelLib
+        val json : Json = Json {
+            serializersModule = SerializersModule {
+                contextual(Vector3f::class,Vector3fSerializer)
+                contextual(Quaternionf::class,QuaternionfSerializer)
+                contextual(Transformation::class,TransformationSerializer)
+                //blockdisplay~
+                //model~~
+
+            }
+        }
     }
     override fun onEnable() {
         instance = this
@@ -37,8 +54,18 @@ class PastelLib : JavaPlugin() {
         getCommand("task")?.setExecutor(TaskCommand())
         Bukkit.getPluginManager().registerEvents(TEST(),this)
         debug {
+            val sizeModule = LaserSizeModule()
             executeOnItem(Material.STICK){
-
+                ModelRenderer<BlockDisplay>().render(commandJuho.location, LASER).also {
+                    it.attachModule(sizeModule)
+                }
+            }
+            executeOnItem(Material.ANDESITE_STAIRS) {
+                commandJuho.sendMessage("affw")
+                sizeModule.size(1f,1f,10f)
+            }
+            executeOnItem(Material.RED_TERRACOTTA){
+                sizeModule.size(1f,1f,5f)
             }
         }
     }
