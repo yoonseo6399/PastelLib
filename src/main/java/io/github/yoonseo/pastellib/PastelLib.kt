@@ -13,11 +13,15 @@ import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.NumberDi
 import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import org.bukkit.Bukkit
+import org.bukkit.Color
 import org.bukkit.Material
+import org.bukkit.block.data.BlockData
 import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
@@ -40,6 +44,8 @@ class PastelLib : JavaPlugin() {
                 contextual(Vector3f::class,Vector3fSerializer)
                 contextual(Quaternionf::class,QuaternionfSerializer)
                 contextual(Transformation::class,TransformationSerializer)
+                //contextual(BlockData::class,BlockDataSerializer)
+                contextual(Color::class,ColorSerializer)
                 //blockdisplay~
                 //model~~
 
@@ -66,6 +72,20 @@ class PastelLib : JavaPlugin() {
             }
             executeOnItem(Material.RED_TERRACOTTA){
                 sizeModule.size(1f,1f,5f)
+            }
+            executeOnItem(Material.AMETHYST_BLOCK){
+                commandJuho.sendMessage("interaccccct searching for target")
+                val target = commandJuho.location.world.getNearbyEntities(commandJuho.boundingBox).firstOrNull { it is BlockDisplay } as? BlockDisplay
+                commandJuho.sendMessage("target : ${target?.name ?: "not found"}")
+                if(target == null) return@executeOnItem
+                val data = DisplayData.Block(target.transformation,target.block,target.interpolationDuration,target.teleportDuration)
+                commandJuho.sendMessage("displayData : $data")
+                commandJuho.sendMessage("---------JSON----------")
+                val dataJson = json.encodeToString(data)
+                commandJuho.sendMessage(dataJson)
+                commandJuho.sendMessage("---------Deserializing-----------")
+                commandJuho.sendMessage("${json.decodeFromString<DisplayData>(dataJson)}")
+
             }
         }
     }

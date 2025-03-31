@@ -4,35 +4,44 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
+import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Material
+import org.bukkit.block.BlockState
 import org.bukkit.block.data.BlockData
+import org.bukkit.entity.BlockDisplay
+import org.bukkit.entity.TextDisplay
 import org.bukkit.util.Transformation
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
 @Serializable
-sealed class DisplayData(@Contextual open val transformation : Transformation = TransformationBuilder().build()){
+sealed class DisplayData(@Transient open val transformation : Transformation = TransformationBuilder().build()){
+    @Serializable
     data class Text(
-        override val transformation : Transformation = TransformationBuilder().build(),
+        @Contextual override val transformation : Transformation = TransformationBuilder().build(),
         val text : Component,
-        val backgroundColor : Color
+        @Contextual val backgroundColor : Color?
     ) : DisplayData(transformation)
-
+    @Serializable
     data class Block(
-        override val transformation : Transformation = TransformationBuilder().build(),
+        @Contextual override val transformation : Transformation = TransformationBuilder().build(),
         val blockData: BlockData,
         val interpolationDuration : Int = 0,
         val teleportDuration : Int = 0
     ) : DisplayData(transformation)
-    fun o(){
-        Json
-    }
 
+}
+fun BlockDisplay.extractData() : DisplayData{
+    return DisplayData.Block(transformation,block,interpolationDuration,teleportDuration)
+}
+fun TextDisplay.extractData() : DisplayData{
+    return DisplayData.Text(transformation, text(), backgroundColor)
 }
 val LASER : List<DisplayData> = listOf(
     DisplayData.Block(
@@ -49,6 +58,61 @@ val LASER : List<DisplayData> = listOf(
     )
 )
 
+
+object ColorSerializer : KSerializer<Color> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Color") {
+        element<Int>("r")
+        element<Int>("g")
+        element<Int>("b")
+        element<Int>("a")
+    }
+
+    override fun serialize(encoder: Encoder, value: Color) {
+        encoder.encodeStructure(descriptor) {
+            encodeIntElement(descriptor, 0, value.red)
+            encodeIntElement(descriptor, 1, value.green)
+            encodeIntElement(descriptor, 2, value.blue)
+            encodeIntElement(descriptor, 3, value.alpha)
+        }
+    }
+
+    override fun deserialize(decoder: Decoder): Color {
+        return decoder.decodeStructure(descriptor) {
+            var r = 0
+            var g = 0
+            var b = 0
+            var a = 255  // 기본값 (불투명)
+
+            while (true) {
+                when (val index = decodeElementIndex(descriptor)) {
+                    0 -> r = decodeIntElement(descriptor, index)
+                    1 -> g = decodeIntElement(descriptor, index)
+                    2 -> b = decodeIntElement(descriptor, index)
+                    3 -> a = decodeIntElement(descriptor, index)
+                    CompositeDecoder.DECODE_DONE -> break
+                    else -> error("Unexpected index: $index")
+                }
+            }
+
+            Color.fromARGB(a, r, g, b)
+        }
+    }
+}
+
+object BlockDataSerializer : KSerializer<BlockData> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("BlockData") {
+        element<Material>("material")
+        element<Byte>("data")
+    }
+
+    override fun serialize(encoder: Encoder, value: BlockData) {
+        encoder.encodeString(value.getAsString(true))
+    }
+
+    override fun deserialize(decoder: Decoder): BlockData {
+        return Bukkit.getServer().createBlockData(decoder.decodeString())
+    }
+}
 object TransformationSerializer : KSerializer<Transformation> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Transformation") {
         element<Vector3f>("translation")
