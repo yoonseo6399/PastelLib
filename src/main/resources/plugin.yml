@@ -9,3 +9,5 @@ commands:
     description: Hold a gun.
   task:
     description: Assign a task to a character.
+  model:
+    description: register custom model or load it. ( model [load/register] [modelName] )

@@ -1,5 +1,6 @@
-package io.github.yoonseo.pastellib.utils.entity.blockDisplays
+package io.github.yoonseo.pastellib.utils.entity.model
 
+import io.github.yoonseo.pastellib.PastelLib
 import org.bukkit.Location
 import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.Display
@@ -10,6 +11,11 @@ interface Renderer<T,R> {
 }
 
 class ModelRenderer<T : Display> : Renderer<List<DisplayData>, Model<T>> {
+
+    fun load(location: Location, name : String) : Model<T> {
+        val data = PastelLib.modelFileManager.loadModelData(name)
+        return render(location,data)
+    }
     override fun render(location: Location, data: List<DisplayData>): Model<T> {
         val main = location.world.spawn(location, BlockDisplay::class.java)
         for (displayData in data) {

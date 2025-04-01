@@ -1,4 +1,4 @@
-package io.github.yoonseo.pastellib.utils.entity.blockDisplays
+package io.github.yoonseo.pastellib.utils.entity.particle
 
 import io.github.yoonseo.pastellib.utils.tasks.Promise
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating

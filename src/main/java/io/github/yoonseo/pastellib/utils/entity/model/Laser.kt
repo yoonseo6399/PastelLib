@@ -1,7 +1,10 @@
-package io.github.yoonseo.pastellib.utils.entity.blockDisplays
+package io.github.yoonseo.pastellib.utils.entity.model
 
 import io.github.yoonseo.pastellib.utils.*
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.LightParticle
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.*
+import io.github.yoonseo.pastellib.utils.entity.particle.particles.LightParticle
+import io.github.yoonseo.pastellib.utils.entity.particle.randomVector
+import io.github.yoonseo.pastellib.utils.entity.particle.showParticle
 import io.github.yoonseo.pastellib.utils.selectors.Ray
 import io.github.yoonseo.pastellib.utils.selectors.rayTo
 import io.github.yoonseo.pastellib.utils.tasks.Promise
@@ -17,7 +20,7 @@ import org.joml.Vector3f
 
 
 
-class LaserSizeModule : SizeModule<BlockDisplay>{
+class LaserSizeModule : SizeModule<BlockDisplay> {
     var model : DisplayModel? = null
     override var baseSize: MutableMap<BlockDisplay, Vector3f> = mutableMapOf()
 

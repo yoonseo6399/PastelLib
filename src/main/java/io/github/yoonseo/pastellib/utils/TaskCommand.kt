@@ -1,21 +1,16 @@
 package io.github.yoonseo.pastellib.utils
 
 import io.github.yoonseo.pastellib.PastelLib
-import io.github.yoonseo.pastellib.PastelLib.Companion.json
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.DisplayData
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.LASER
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.LaserSizeModule
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.ModelRenderer
-import kotlinx.serialization.builtins.PairSerializer
+import io.github.yoonseo.pastellib.utils.entity.model.DisplayData
+import io.github.yoonseo.pastellib.utils.entity.model.LASER
+import io.github.yoonseo.pastellib.utils.entity.model.LaserSizeModule
+import io.github.yoonseo.pastellib.utils.entity.model.ModelRenderer
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.BlockDisplay
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
-import kotlin.system.measureTimeMillis
 
 class TaskCommand : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -44,18 +39,29 @@ class TaskCommand : CommandExecutor {
                 }
                 executeOnItem(Material.AMETHYST_BLOCK){
                     commandJuho.sendMessage("interaccccct searching for target")
-                    var target = commandJuho.location.world.getNearbyEntities(commandJuho.boundingBox).firstOrNull { it is BlockDisplay } as? BlockDisplay
+                    val target = commandJuho.location.world.getNearbyEntities(commandJuho.boundingBox).firstOrNull { it is BlockDisplay } as? BlockDisplay
                     commandJuho.sendMessage("target : ${target?.name ?: "not found"}")
                     if(target == null) return@executeOnItem
-                    if(target.passengers.size != 0) target = target.passengers.first { it is BlockDisplay } as? BlockDisplay ?: return@executeOnItem
-                    val data = DisplayData.Block(target.transformation,target.block,target.interpolationDuration,target.teleportDuration)
-                    commandJuho.sendMessage("displayData : $data")
-                    commandJuho.sendMessage("---------JSON----------")
-                    val dataJson = json.encodeToString(data)
-                    commandJuho.sendMessage(dataJson)
-                    commandJuho.sendMessage("---------Deserializing-----------")
-                    commandJuho.sendMessage("${json.decodeFromString<DisplayData>(dataJson)}")
+                    if(target.passengers.size == 0) {
+                        commandJuho.sendMessage("found no passenger, single model cannot be registered")
+                    }
+                    val passengers = target.passengers.mapNotNull { it as? BlockDisplay }
+                    val datas = mutableListOf<DisplayData>()
+                    passengers.forEach {
+                        val data = DisplayData.Block(it.transformation,it.block,it.interpolationDuration,it.teleportDuration) as DisplayData
+                        datas.add(data)
+                    }
+                    PastelLib.modelFileManager.saveModel("Laser",datas)
+                    commandJuho.sendMessage("saved")
                 }
+                executeOnItem(Material.AMETHYST_SHARD){
+                    val model = ModelRenderer<BlockDisplay>().load(commandJuho.location,"Laser").also {
+                        it.attachModule(sizeModule)
+                    }
+                    commandJuho.sendMessage("loaded")
+
+                }
+
                 commandJuho.sendMessage("initalizing")
             }
         }

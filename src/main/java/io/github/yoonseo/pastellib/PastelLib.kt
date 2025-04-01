@@ -7,24 +7,21 @@ import io.github.yoonseo.pastellib.guns.GunCommand
 import io.github.yoonseo.pastellib.guns.GunCommandTabCompleter
 import io.github.yoonseo.pastellib.utils.*
 import io.github.yoonseo.pastellib.utils.entity.blockDisplays.*
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.FireParticle
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.FloorBloodParticle
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles.NumberDisplayParticle
+import io.github.yoonseo.pastellib.utils.entity.model.*
+import io.github.yoonseo.pastellib.utils.entity.particle.particles.FireParticle
+import io.github.yoonseo.pastellib.utils.entity.particle.particles.FloorBloodParticle
+import io.github.yoonseo.pastellib.utils.entity.particle.particles.NumberDisplayParticle
+import io.github.yoonseo.pastellib.utils.entity.particle.DisplayParticle
+import io.github.yoonseo.pastellib.utils.entity.particle.showParticle
 import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
-import io.github.yoonseo.pastellib.utils.tasks.eventual
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
-import kotlinx.serialization.modules.polymorphic
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.block.data.BlockData
-import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -43,25 +40,23 @@ class PastelLib : JavaPlugin() {
         lateinit var instance: PastelLib
         val json : Json = Json {
             serializersModule = SerializersModule {
-                contextual(Vector3f::class,Vector3fSerializer)
-                contextual(Quaternionf::class,QuaternionfSerializer)
-                contextual(Transformation::class,TransformationSerializer)
-                contextual(BlockData::class,BlockDataSerializer)
-                contextual(Color::class,ColorSerializer)
-
-                //blockdisplay~
-                //model~~
-
+                contextual(Vector3f::class, Vector3fSerializer)
+                contextual(Quaternionf::class, QuaternionfSerializer)
+                contextual(Transformation::class, TransformationSerializer)
+                contextual(BlockData::class, BlockDataSerializer)
+                contextual(Color::class, ColorSerializer)
             }
-            classDiscriminator = "type"
         }
+        lateinit var modelFileManager: ModelFileManager
     }
     override fun onEnable() {
         instance = this
+        modelFileManager = ModelFileManager()
         Sit.initialize()
         Gun.initalize()
         getCommand("gun")?.also { it.tabCompleter = GunCommandTabCompleter() }?.setExecutor(GunCommand())
         getCommand("task")?.setExecutor(TaskCommand())
+        getCommand("model")?.setExecutor(ModelCommand())
         Bukkit.getPluginManager().registerEvents(TEST(),this)
     }
     override fun onDisable() {
@@ -92,7 +87,10 @@ class TEST : Listener{
             }
             Material.END_ROD -> {
                 debug {
-                    if(laser == null) laser = Laser(commandJuho.location,10f,0.5f,Material.WHITE_CONCRETE.createBlockData(),Material.WHITE_STAINED_GLASS.createBlockData(),LaserOptions.RotateZ,LaserOptions.FOLLOW,LaserOptions.LIGHT_EMIT)
+                    if(laser == null) laser = Laser(commandJuho.location,10f,0.5f,Material.WHITE_CONCRETE.createBlockData(),Material.WHITE_STAINED_GLASS.createBlockData(),
+                        LaserOptions.RotateZ,
+                        LaserOptions.FOLLOW,
+                        LaserOptions.LIGHT_EMIT)
                     laser!!.teleport(commandJuho.location)
                 }
             }

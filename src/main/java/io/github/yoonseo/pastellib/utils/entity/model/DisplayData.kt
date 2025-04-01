@@ -1,14 +1,13 @@
-package io.github.yoonseo.pastellib.utils.entity.blockDisplays
+package io.github.yoonseo.pastellib.utils.entity.model
 
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.TransformationBuilder
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Material
-import org.bukkit.block.BlockState
 import org.bukkit.block.data.BlockData
 import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.TextDisplay
@@ -35,21 +34,21 @@ sealed class DisplayData(@Transient open val transformation : Transformation = T
     ) : DisplayData(transformation)
 
 }
-fun BlockDisplay.extractData() : DisplayData{
-    return DisplayData.Block(transformation,block,interpolationDuration,teleportDuration)
+fun BlockDisplay.extractData() : DisplayData {
+    return DisplayData.Block(transformation, block, interpolationDuration, teleportDuration)
 }
-fun TextDisplay.extractData() : DisplayData{
+fun TextDisplay.extractData() : DisplayData {
     return DisplayData.Text(transformation, text(), backgroundColor)
 }
 val LASER : List<DisplayData> = listOf(
     DisplayData.Block(
-        TransformationBuilder().scale(1f, 1f, 1f).translate(-0.5f,-0.5f,-0.5f).build(),
+        TransformationBuilder().scale(1f, 1f, 1f).translate(-0.5f, -0.5f, -0.5f).build(),
         Material.WHITE_STAINED_GLASS.createBlockData(),
         1,
         10
     ),
     DisplayData.Block(
-        TransformationBuilder().scale(0.5f, 0.5f, 0.5f).translate(-0.25f,-0.25f,-0.25f).build(),
+        TransformationBuilder().scale(0.5f, 0.5f, 0.5f).translate(-0.25f, -0.25f, -0.25f).build(),
         Material.WHITE_CONCRETE.createBlockData(),
         1,
         10
@@ -116,7 +115,7 @@ object TransformationSerializer : KSerializer<Transformation> {
         element("translation", Vector3fSerializer.descriptor)
         element("leftRotation", QuaternionfSerializer.descriptor)
         element("scale", Vector3fSerializer.descriptor)
-        element("rightRotation",QuaternionfSerializer.descriptor)
+        element("rightRotation", QuaternionfSerializer.descriptor)
     }
 
     override fun serialize(encoder: Encoder, value: Transformation) {

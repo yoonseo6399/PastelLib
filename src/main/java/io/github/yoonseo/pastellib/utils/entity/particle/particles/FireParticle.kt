@@ -1,7 +1,7 @@
-package io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles
+package io.github.yoonseo.pastellib.utils.entity.particle.particles
 
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.DisplayParticle
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.randomNegativedInclude
+import io.github.yoonseo.pastellib.utils.entity.particle.DisplayParticle
+import io.github.yoonseo.pastellib.utils.entity.particle.randomNegativedInclude
 import io.github.yoonseo.pastellib.utils.debug
 import io.github.yoonseo.pastellib.utils.interpolate
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating

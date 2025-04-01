@@ -1,7 +1,7 @@
-package io.github.yoonseo.pastellib.utils.entity.blockDisplays.particles
+package io.github.yoonseo.pastellib.utils.entity.particle.particles
 
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.DisplayParticle
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.randomVector
+import io.github.yoonseo.pastellib.utils.entity.particle.DisplayParticle
+import io.github.yoonseo.pastellib.utils.entity.particle.randomVector
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Color

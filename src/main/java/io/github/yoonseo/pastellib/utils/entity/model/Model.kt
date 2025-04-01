@@ -1,13 +1,11 @@
-package io.github.yoonseo.pastellib.utils.entity.blockDisplays
+package io.github.yoonseo.pastellib.utils.entity.model
 import io.github.yoonseo.pastellib.utils.tasks.Promise
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
-import io.github.yoonseo.pastellib.utils.tasks.toTicks
 import io.papermc.paper.entity.TeleportFlag
 import org.bukkit.*
 import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.Display
 import org.joml.*
-import kotlin.time.Duration
 
 
 abstract class ModelPart{
@@ -23,7 +21,7 @@ interface ModelModule<T : Display>{
     fun onAttach(model: Model<T>)
     fun onDetach(model: Model<T>)
 }
-interface SizeModule <T : Display> : ModelModule<T>{
+interface SizeModule <T : Display> : ModelModule<T> {
     var baseSize : MutableMap<T,Vector3f>
     fun size(x : Float, y : Float, z : Float)
     fun size(size : Vector3f){
@@ -40,6 +38,7 @@ interface SizeModule <T : Display> : ModelModule<T>{
 typealias DisplayModel = Model<BlockDisplay>
 
 class Model<T : Display>(val mainDisplay: BlockDisplay, val displayData: List<DisplayData>) {
+
     val isDead : Boolean
         get() = mainDisplay.isDead || mainDisplay.passengers.any { isDead }
     //val parts : List<ModelPart>
@@ -47,6 +46,7 @@ class Model<T : Display>(val mainDisplay: BlockDisplay, val displayData: List<Di
     val displays : MutableList<T>
         get() {
             require(validate()) { "Invalid Model structure" }
+            @Suppress("UNCHECKED_CAST")
             return mainDisplay.passengers.mapNotNull { it as? T }.toMutableList()
         }
     fun attachModule(module : ModelModule<T>){

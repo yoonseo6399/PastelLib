@@ -1,6 +1,6 @@
 package io.github.yoonseo.pastellib.utils
 
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.Laser
+import io.github.yoonseo.pastellib.utils.entity.model.Laser
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
