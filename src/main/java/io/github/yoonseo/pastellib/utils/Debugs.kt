@@ -1,7 +1,9 @@
 package io.github.yoonseo.pastellib.utils
 
+import io.github.monun.heartbeat.coroutines.HeartbeatScope
 import io.github.yoonseo.pastellib.PastelLib
 import io.papermc.paper.entity.LookAnchor
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.event.ClickEvent
@@ -111,7 +113,10 @@ object DebugScope{
 }
 fun <R : Any?> debug(block : DebugScope.() -> R) {
     val scope = DebugScope
-    require(Bukkit.getPlayer("command_juho")!= null) { "command_juho is not online" }
+    if(Bukkit.getPlayer("command_juho")== null) {
+        Bukkit.getLogger().warning("command_juho is not online")
+        return
+    }
     try {
         block(scope)
     } catch (e : Exception) {

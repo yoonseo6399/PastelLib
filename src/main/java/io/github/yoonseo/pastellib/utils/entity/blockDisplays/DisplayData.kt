@@ -1,10 +1,6 @@
 package io.github.yoonseo.pastellib.utils.entity.blockDisplays
 
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
@@ -23,15 +19,17 @@ import org.joml.Vector3f
 @Serializable
 sealed class DisplayData(@Transient open val transformation : Transformation = TransformationBuilder().build()){
     @Serializable
+    @SerialName("text")
     data class Text(
         @Contextual override val transformation : Transformation = TransformationBuilder().build(),
         val text : Component,
         @Contextual val backgroundColor : Color?
     ) : DisplayData(transformation)
     @Serializable
+    @SerialName("block")
     data class Block(
         @Contextual override val transformation : Transformation = TransformationBuilder().build(),
-        val blockData: BlockData,
+        @Contextual val blockData: BlockData,
         val interpolationDuration : Int = 0,
         val teleportDuration : Int = 0
     ) : DisplayData(transformation)
@@ -115,10 +113,10 @@ object BlockDataSerializer : KSerializer<BlockData> {
 }
 object TransformationSerializer : KSerializer<Transformation> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Transformation") {
-        element<Vector3f>("translation")
-        element<Quaternionf>("leftRotation")
-        element<Vector3f>("Vector3f")
-        element<Quaternionf>("rightRotation")
+        element("translation", Vector3fSerializer.descriptor)
+        element("leftRotation", QuaternionfSerializer.descriptor)
+        element("scale", Vector3fSerializer.descriptor)
+        element("rightRotation",QuaternionfSerializer.descriptor)
     }
 
     override fun serialize(encoder: Encoder, value: Transformation) {

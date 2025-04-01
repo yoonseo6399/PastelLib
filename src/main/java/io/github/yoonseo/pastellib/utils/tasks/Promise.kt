@@ -78,4 +78,13 @@ fun later(delay : Long, block : Promise.() -> Unit) : Promise {
 fun later(delay : Duration, block : Promise.() -> Unit) : Promise = later(delay.toTicks(), block)
 fun Duration.toTicks() : Long = this.toLong(DurationUnit.MILLISECONDS)/50
 
-fun <R> eventual(callback: (R) -> Unit,block: Promise.() -> R?) : Promise = syncRepeating { block(this)?.let { callback(it) } }
+
+
+fun <R> eventual(callback: (R) -> Unit,block: Promise.() -> R?) : Promise = syncRepeating {
+    TODO()
+    val a = block(this)
+    if(a != null) {
+        cancel()
+        callback(a)
+    }
+}
