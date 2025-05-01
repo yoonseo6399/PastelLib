@@ -1,14 +1,14 @@
 package io.github.yoonseo.pastellib.utils.entity.blockDisplays
 
+import io.github.yoonseo.pastellib.utils.cloneSetLeftRotation
+import io.github.yoonseo.pastellib.utils.cloneSetRightRotation
+import io.github.yoonseo.pastellib.utils.debug
 import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.Particle
 import org.bukkit.World
 import org.bukkit.entity.BlockDisplay
-import org.joml.Matrix3f
-import org.joml.Matrix4f
-import org.joml.Quaternionf
-import org.joml.Vector3f
+import org.joml.*
 import kotlin.reflect.KClass
 
 open class AdvancedBlockDisplay protected constructor(display: BlockDisplay, initializer: BlockDisplay.() -> Unit = {}) : BlockDisplay by display {
@@ -35,6 +35,23 @@ open class AdvancedBlockDisplay protected constructor(display: BlockDisplay, ini
         matrix.setTranslation(rotationMatrix.transform(translation))
         setTransformationMatrix(matrix)
     }
+    fun globalRotation(quaternionf: Quaternionf){
+        val matrix = transformation.toMatrix4f()
+        val matA = Matrix4f().rotate(quaternionf)
+        matA.mul(matrix)
+        setTransformationMatrix(matA)
+
+        debug {
+            scoreboard("left",transformation.leftRotation)
+            scoreboard("right",transformation.rightRotation)
+        }
+    }
+    fun applyGlobalRotation(quaternionf: Quaternionf){
+
+    }
+
+
+
 
 
     fun debug(){

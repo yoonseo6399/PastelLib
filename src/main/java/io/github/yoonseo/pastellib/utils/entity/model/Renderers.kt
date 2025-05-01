@@ -1,28 +1,38 @@
 package io.github.yoonseo.pastellib.utils.entity.model
 
 import io.github.yoonseo.pastellib.PastelLib
+import io.github.yoonseo.pastellib.utils.debug
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.AdvancedBlockDisplay
 import org.bukkit.Location
 import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.Display
 import org.bukkit.entity.TextDisplay
+import org.bukkit.util.Vector
 
 interface Renderer<T,R> {
     fun render(location: Location, data : T) : R
 }
 
-class ModelRenderer<T : Display> : Renderer<List<DisplayData>, Model<T>> {
-
-    fun load(location: Location, name : String) : Model<T> {
-        val data = PastelLib.modelFileManager.loadModelData(name)
+class ModelRenderer<T : Display>(val model : Model<T>) : Renderer<List<DisplayData>, Model<T>> {
+    var customRendering : ((Model<T>) -> Unit)? = null
+    fun load(location: Location) : Model<T> {
+        val data = PastelLib.modelFileManager.loadModelData(model.name)
+        require(data.isNotEmpty()) { "that name of model is not exist" }
         return render(location,data)
     }
     override fun render(location: Location, data: List<DisplayData>): Model<T> {
-        val main = location.world.spawn(location, BlockDisplay::class.java)
+        val main = location.world.spawn(location.clone().setDirection(Vector(0,0,1)), BlockDisplay::class.java)
         for (displayData in data) {
-            main.addPassenger(DisplayRenderer().render(location,displayData))
+            main.addPassenger(DisplayRenderer().render(location.clone().setDirection(Vector(0,0,1)),displayData))
         }
-        return Model(main, data)
+        model.mainDisplay = main
+        model.displayData = data
+        customRendering?.invoke(model)
+        return model
     }
+}
+fun <T : Display> modelRenderer(model : Model<T>,whenRendering : Model<T>.() -> Unit): ModelRenderer<T> {
+    return ModelRenderer(model).also { it.customRendering = whenRendering }
 }
 
 class DisplayRenderer : Renderer<DisplayData, Display> {

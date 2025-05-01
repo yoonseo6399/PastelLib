@@ -2,11 +2,16 @@ package io.github.yoonseo.pastellib.utils.entity.model
 
 import io.github.yoonseo.pastellib.PastelLib
 import io.github.yoonseo.pastellib.utils.DebugScope.commandJuho
+import io.github.yoonseo.pastellib.utils.entity.blockDisplays.AdvancedBlockDisplay
+import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
+import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.BlockDisplay
+import org.bukkit.entity.Display
+import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 
 class ModelCommand : CommandExecutor{
@@ -24,11 +29,10 @@ class ModelCommand : CommandExecutor{
                     return true
                 }
                 sender.sendMessage("searching for target")
-                val target = sender.location.world.getNearbyEntities(sender.boundingBox).firstOrNull { it is BlockDisplay && it.passengers.isNotEmpty()} as? BlockDisplay
-                sender.sendMessage("target : ${target?.name ?: "not found"}")
-                sender.sendMessage("or found no passenger, single model cannot be registered")
+                val target = sender.location.world.getNearbyEntities(sender.boundingBox).firstOrNull { it is BlockDisplay && it.passengers.isNotEmpty() && it.block.material == Material.AIR} as? BlockDisplay
+                sender.sendMessage("target : ${target?.name ?: "not found or found no passenger, single model cannot be registered"}")
                 if(target == null) return true
-                val passengers = target.passengers.mapNotNull { it as? BlockDisplay }
+                val passengers = recursivePassengers(target).mapNotNull { it as? BlockDisplay }
                 val datas = mutableListOf<DisplayData>()
                 passengers.forEach {
                     val data = DisplayData.Block(it.transformation,it.block,it.interpolationDuration,it.teleportDuration) as DisplayData
@@ -43,10 +47,40 @@ class ModelCommand : CommandExecutor{
                     sender.sendMessage("only players can register models")
                     return true
                 }
-                val model = ModelRenderer<BlockDisplay>().load(sender.location,p3[1])
+                DefaultModel<Display>(p3[1]).renderer.load(sender.location)
+                sender.sendMessage("Successfully loaded model ${p3[1]}")
+            }
+            "debug" -> {
+                if(sender !is Player){
+                    sender.sendMessage("only players can register models")
+                    return true
+                }
+                sender.sendMessage("searching for target")
+                val target = sender.location.world.getNearbyEntities(sender.boundingBox).firstOrNull { it is BlockDisplay && it.passengers.isNotEmpty() && it.block.material == Material.AIR} as? BlockDisplay
+                sender.sendMessage("target : ${target?.name ?: "not found or found no passenger, single model cannot be registered"}")
+                if(target == null) return true
+                val passengers = recursivePassengers(target).mapNotNull { it as? BlockDisplay }
+                var count = 0
+                syncRepeating {
+                    count++
+                    passengers.forEach { AdvancedBlockDisplay.getBy(it).debug() }
+                    if(count >= 20*10) cancel()
+                }
             }
         }
         return true
     }
 
+    fun recursivePassengers(entity: Entity): List<Entity> {
+        val passengers = mutableListOf<Entity>()
+        for (passenger in entity.passengers) {
+            if(passenger.passengers.isEmpty()){
+                passengers.add(passenger)
+            } else {
+                passengers.add(passenger)
+                passengers.addAll(recursivePassengers(passenger))
+            }
+        }
+        return passengers
+    }
 }

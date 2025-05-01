@@ -8,7 +8,7 @@ class NullIf<V>(val predicate : (V?) -> Boolean?) : ReadWriteProperty<Any, V?> {
     var value : V? = null
     override fun getValue(thisRef: Any, property: KProperty<*>): V? {
         if(predicate(value) == true) value = null
-        return null
+        return value
     }
 
     override fun setValue(thisRef: Any, property: KProperty<*>, value: V?) {
@@ -16,4 +16,4 @@ class NullIf<V>(val predicate : (V?) -> Boolean?) : ReadWriteProperty<Any, V?> {
     }
 }
 
-fun <V> nullIf(predicate: (Laser?) -> Boolean?) = NullIf(predicate)
+fun <V> nullIf(predicate: (V?) -> Boolean?) = NullIf(predicate)

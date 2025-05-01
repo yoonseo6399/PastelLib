@@ -1,17 +1,27 @@
 package io.github.yoonseo.pastellib.utils
 
 import com.google.common.base.Predicate
+import io.github.yoonseo.pastellib.mainThread
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withContext
 import net.kyori.adventure.sound.Sound
+import org.bukkit.Bukkit
 import org.bukkit.EntityEffect
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.damage.DamageSource
+import org.bukkit.damage.DamageType
 import org.bukkit.entity.LivingEntity
+import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.Transformation
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 sealed class Union<T1,T2>{
     data class Left<T1>(val value: T1) : Union<T1, Nothing>()
@@ -33,6 +43,11 @@ sealed class ListOrSingle<T> {
     data class Single<T>(val value: T) : ListOrSingle<T>()
 }
 
+suspend fun <T> runInMainThread(
+    block: suspend CoroutineScope.() -> T
+): T = withContext(mainThread,block)
+val Int.ticks : Duration
+    get() = (50*this).milliseconds
 class WhenBlock<T : Comparable<T>>{
     val branches = hashMapOf<ClosedRange<T>,Runnable>()
     var lastSuccess = false
@@ -109,10 +124,11 @@ fun <T : Any> String.toType(clz : KClass<T>): Any? {
     } as? T?
 }
 
-fun LivingEntity.forceDamage(damage: Double) {
+fun LivingEntity.forceDamage(damage: Double, damageSource: DamageSource = DamageSource.builder(DamageType.GENERIC).build(), causeEvent : Boolean = false) {
     if(health - damage <= 0) health = 0.0
     else health -= damage
-    playEffect(EntityEffect.HURT)
+    Bukkit.getPluginManager().callEvent(EntityDamageEvent(this,EntityDamageEvent.DamageCause.ENTITY_ATTACK,damageSource,damage))
+    //playEffect(EntityEffect.HURT)
     hurtSound?.let { location.world.playSound(Sound.sound(it,Sound.Source.PLAYER,1f,1f)) }
 }
 fun Transformation.cloneSetTranslation(vector: Vector3f): Transformation = Transformation(vector,leftRotation,scale,rightRotation)

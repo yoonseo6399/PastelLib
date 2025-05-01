@@ -100,14 +100,16 @@ object DebugScope{
         Bukkit.getPluginManager().registerEvents(object : Listener {
             @EventHandler
             fun onInteract(e: PlayerInteractEvent) {
-                if(e.item != null && e.item!!.type == material) block(e)
-                commandJuho.sendActionBar(Component.text("Debug, Requested by ${getWhoExecuting().methodName}"))
+                if(e.item != null && e.item!!.type == material) {
+                    block(e)
+                    //commandJuho.sendActionBar(Component.text("Debug, Requested by ${getWhoExecuting().methodName}"))
+                }
             }
         },PastelLib.instance)
     }
     private fun getWhoExecuting() : StackTraceElement {
         val stackTrace = Thread.currentThread().stackTrace
-        val element = stackTrace[2]
+        val element = stackTrace[4]
         return element
     }
 }

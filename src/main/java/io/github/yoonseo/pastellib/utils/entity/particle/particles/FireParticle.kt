@@ -49,10 +49,6 @@ open class FireParticle : DisplayParticle<TextDisplay>(){
             if(time in 0..10) display.backgroundColor = display.backgroundColor!!.interpolate(Color.YELLOW.setAlpha(150),0.2)
             if(time in 10..25) display.backgroundColor = display.backgroundColor!!.interpolate(Color.RED.setAlpha(150),0.15)
             if(time in 25..40) display.backgroundColor = display.backgroundColor!!.interpolate(Color.BLACK.setAlpha(50),0.1)
-            debug {
-                scoreboard("Particle RED", display.backgroundColor!!.red)
-                //commandJuho?.sendMessage(c.alpha.toString())
-            }
         }
         display.transformation = Transformation(
             Vector3f(0f, 0.25f, 0f),

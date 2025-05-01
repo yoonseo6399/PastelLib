@@ -14,14 +14,18 @@ import io.github.yoonseo.pastellib.utils.entity.particle.particles.NumberDisplay
 import io.github.yoonseo.pastellib.utils.entity.particle.DisplayParticle
 import io.github.yoonseo.pastellib.utils.entity.particle.showParticle
 import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
+import io.github.yoonseo.pastellib.utils.skill.LightLaser
+import io.github.yoonseo.pastellib.utils.skill.SwordDemonSkill
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.block.data.BlockData
+import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -29,10 +33,14 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
+import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitScheduler
 import org.bukkit.util.Transformation
+import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import kotlin.coroutines.CoroutineContext
 
 
 class PastelLib : JavaPlugin() {
@@ -54,6 +62,8 @@ class PastelLib : JavaPlugin() {
         modelFileManager = ModelFileManager()
         Sit.initialize()
         Gun.initalize()
+        LightLaser()
+        SwordDemonSkill()
         getCommand("gun")?.also { it.tabCompleter = GunCommandTabCompleter() }?.setExecutor(GunCommand())
         getCommand("task")?.setExecutor(TaskCommand())
         getCommand("model")?.setExecutor(ModelCommand())
@@ -67,7 +77,7 @@ class PastelLib : JavaPlugin() {
     }
 }
 class TEST : Listener{
-    var blockDisplay : AdvancedBlockDisplay? = null
+    var blockDisplay by nullIf<Model<BlockDisplay>> { it?.isDead }
     var laser by nullIf<Laser> { it?.isDead }
     var cooldown = 0
     @EventHandler(priority = EventPriority.LOW)
@@ -97,11 +107,21 @@ class TEST : Listener{
             else -> {}
         }
     }
-
+    fun load(){
+        if(blockDisplay == null){ /////////////
+            debug {
+                blockDisplay = DefaultModel<BlockDisplay>("boss1-L").renderer.load(commandJuho.location)
+                SwordDemon(commandJuho).renderer.load(commandJuho.location)
+//                syncRepeating {
+//                    blockDisplay!!.debug()
+//                }
+                commandJuho.sendMessage("block display created")
+            }
+        }
+    }
 
     @EventHandler
     fun hurtEvent(e : EntityDamageEvent){
-        e.entity.location.showParticle(FloorBloodParticle(e.damage))
         if(e.entity is LivingEntity) {
             (e.entity as LivingEntity).eyeLocation.showParticle(NumberDisplayParticle(e.damage))
         }
@@ -114,3 +134,11 @@ class TEST : Listener{
         }
     }
 }
+
+val mainThread = Bukkit.getScheduler().asCoroutineDispatcher(PastelLib.instance)
+fun BukkitScheduler.asCoroutineDispatcher(plugin: Plugin): CoroutineDispatcher =
+    object : CoroutineDispatcher() {
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            runTask(plugin, block)
+        }
+    }
