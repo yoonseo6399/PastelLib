@@ -20,11 +20,10 @@ import org.joml.Vector3f
 
 
 
-class LaserSizeModule : SizeModule<BlockDisplay> {
-    var model : DisplayModel? = null
-    override var baseSize: MutableMap<BlockDisplay, Vector3f> = mutableMapOf()
+class LaserSizeModule : SizeModule<BlockDisplay>() {
+    var baseSize: MutableMap<BlockDisplay, Vector3f> = mutableMapOf()
 
-    override fun size(x: Float, y: Float, z: Float) {
+    fun size(x: Float, y: Float, z: Float) {
         require(model != null) { "Module is not attached yet" }
         val displays = model!!.displays
 
@@ -33,9 +32,7 @@ class LaserSizeModule : SizeModule<BlockDisplay> {
         }
     }
 
-    override fun proportionalSize(x: Float, y: Float, z: Float) {
-        TODO("Not yet implemented")
-    }
+
 
     override fun onAttach(model: DisplayModel) {
         this.model = model

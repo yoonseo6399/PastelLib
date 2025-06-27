@@ -14,7 +14,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.player.PlayerInteractEvent
 import kotlin.time.Duration.Companion.seconds
 
-class SwordDemonSkill : Skill(){
+class SwordDemonSkill : Skill(cooldown = (3).seconds){
     init {
         val method = object : ActivationMethod() {
             @EventHandler

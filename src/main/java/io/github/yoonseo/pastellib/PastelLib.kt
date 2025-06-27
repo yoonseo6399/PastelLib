@@ -14,7 +14,7 @@ import io.github.yoonseo.pastellib.utils.entity.particle.particles.NumberDisplay
 import io.github.yoonseo.pastellib.utils.entity.particle.DisplayParticle
 import io.github.yoonseo.pastellib.utils.entity.particle.showParticle
 import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
-import io.github.yoonseo.pastellib.utils.skill.LightLaser
+import io.github.yoonseo.pastellib.utils.skill.LightLaserSkill
 import io.github.yoonseo.pastellib.utils.skill.SwordDemonSkill
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
@@ -62,7 +62,7 @@ class PastelLib : JavaPlugin() {
         modelFileManager = ModelFileManager()
         Sit.initialize()
         Gun.initalize()
-        LightLaser()
+        LightLaserSkill()
         SwordDemonSkill()
         getCommand("gun")?.also { it.tabCompleter = GunCommandTabCompleter() }?.setExecutor(GunCommand())
         getCommand("task")?.setExecutor(TaskCommand())

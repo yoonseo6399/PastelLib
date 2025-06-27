@@ -26,9 +26,12 @@ class TaskCommand : CommandExecutor {
 
         if(args.size == 1 && args[0] == "init"){
             debug {
-
-                executeOnItem(Material.GOLDEN_SWORD){
-                    //SwordDemon(commandJuho).renderer.load(commandJuho.location)
+                val e = EnergyRing(commandJuho).also { it.renderer.load(commandJuho.location) }
+                executeOnItem(Material.GLASS){
+                    if(e.energy<8) e.energy++
+                }
+                executeOnItem(Material.STONE){
+                    if(e.energy>0) e.energy--
                 }
 
                 executeOnItem(Material.BREEZE_ROD){

@@ -13,14 +13,13 @@ enum class TaskType {
 open class Promise(val id : Int,val type : TaskType = TaskType.Undefined) {
     var isCanceled = false
         internal set
-    var timeout = -1
+    var timeout : Int? = null
     fun cancel() {
         if(isCanceled) throw IllegalStateException("Task is already canceled")
         Bukkit.getScheduler().cancelTask(id)
         isCanceled = true
     }
-    fun setTimeout(time : Int) : Promise {
-        TODO()
+    fun setDeathTime(time : Int) : Promise {
         timeout = time
         return this
     }
@@ -36,6 +35,10 @@ class AsyncPromise<T>(id : Int) : Promise(id){
 fun syncRepeating(interval: Long = 1,block : Promise.() -> Unit) : Promise {
     var promise : Promise? = null
     val id = Bukkit.getScheduler().scheduleSyncRepeatingTask(PastelLib.instance, {
+        if (promise?.timeout != null){
+            promise!!.timeout = promise!!.timeout!! - 1
+            if(promise!!.timeout!! <= 0) promise!!.cancel()
+        }
         try {
             block(promise!!)
         } catch (e : Exception) {

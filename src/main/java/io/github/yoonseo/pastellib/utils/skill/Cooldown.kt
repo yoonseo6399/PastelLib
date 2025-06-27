@@ -2,6 +2,7 @@ package io.github.yoonseo.pastellib.utils.skill
 
 import io.github.yoonseo.pastellib.PastelLib
 import io.github.yoonseo.pastellib.utils.runInMainThread
+import io.github.yoonseo.pastellib.utils.tasks.Promise
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import io.github.yoonseo.pastellib.utils.tasks.toTicks
 import kotlinx.coroutines.*
@@ -10,6 +11,7 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.event.Listener
 import org.w3c.dom.events.EventListener
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.round
 import kotlin.time.Duration
 
 open class Skill(
@@ -39,9 +41,12 @@ open class Skill(
             cast(caster)
             if(cooldown != null){
                 status = SkillStatus.COOLDOWN
+                inCooldown = cooldown.toTicks().toInt()
+                var task : Promise? = null
+                runInMainThread { task = syncRepeating { inCooldown-- } }
                 delay(cooldown)
                 status = SkillStatus.READY
-                runInMainThread { cooldownComplete(caster) }
+                runInMainThread { cooldownComplete(caster); task?.cancel() }
             }
             status = SkillStatus.READY
         }
@@ -53,7 +58,7 @@ open class Skill(
     }
     fun getCooldown() : Double {
         cooldown!!.toTicks()
-        return inCooldown*0.05
+        return round(inCooldown * 1000*0.05) / 1000
     }
     open fun charge(caster : LivingEntity){}
     open suspend fun cast(caster : LivingEntity){}

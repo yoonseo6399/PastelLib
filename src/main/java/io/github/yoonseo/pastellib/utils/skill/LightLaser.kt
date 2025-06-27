@@ -1,6 +1,7 @@
 package io.github.yoonseo.pastellib.utils.skill
 
 import io.github.yoonseo.pastellib.utils.debug
+import io.github.yoonseo.pastellib.utils.entity.model.LightLaser
 import io.github.yoonseo.pastellib.utils.entity.particle.particles.FireParticle
 import io.github.yoonseo.pastellib.utils.entity.particle.showParticle
 import io.github.yoonseo.pastellib.utils.runInMainThread
@@ -13,12 +14,13 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
+import org.bukkit.util.Vector
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-class LightLaser : Skill((3).seconds) {
+class LightLaserSkill : Skill((3).seconds) {
     init {
         val method = object : ActivationMethod() {
             @EventHandler
@@ -40,17 +42,10 @@ class LightLaser : Skill((3).seconds) {
         }
     }
     fun magic(caster: LivingEntity){
-        val targets = caster.location.world.getNearbyEntities(caster.location,10.0,10.0,10.0){ it != caster && it is LivingEntity}.map { it as LivingEntity }
+        val targets = caster.location.world.getNearbyEntities(caster.location,30.0,30.0,30.0){ it != caster && it is LivingEntity}.map { it as LivingEntity }
         var expire = 40
-        syncRepeating {
-            for (target in targets) {
-                target.location.showParticle(FireParticle(),1)
-            }
-            expire--
-            if(expire <= 0) {
-                targets.forEach { it.damage(5.0) }
-                cancel()
-            }
+        for (target in targets) {
+            LightLaser(caster, target.location.setDirection(Vector(0.0,0.0,1.0))).renderer.load(target.location.setDirection(Vector(0.0,0.0,1.0)))
         }
     }
 }
