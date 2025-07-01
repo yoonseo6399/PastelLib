@@ -6,16 +6,16 @@ import io.github.yoonseo.pastellib.guns.Gun
 import io.github.yoonseo.pastellib.guns.GunCommand
 import io.github.yoonseo.pastellib.guns.GunCommandTabCompleter
 import io.github.yoonseo.pastellib.utils.*
-import io.github.yoonseo.pastellib.utils.entity.blockDisplays.*
 import io.github.yoonseo.pastellib.utils.entity.model.*
 import io.github.yoonseo.pastellib.utils.entity.particle.particles.FireParticle
-import io.github.yoonseo.pastellib.utils.entity.particle.particles.FloorBloodParticle
 import io.github.yoonseo.pastellib.utils.entity.particle.particles.NumberDisplayParticle
 import io.github.yoonseo.pastellib.utils.entity.particle.DisplayParticle
 import io.github.yoonseo.pastellib.utils.entity.particle.showParticle
 import io.github.yoonseo.pastellib.utils.selectors.TickedEntitySelector
-import io.github.yoonseo.pastellib.utils.skill.LightLaserSkill
-import io.github.yoonseo.pastellib.utils.skill.SwordDemonSkill
+import io.github.yoonseo.pastellib.celestia.skills.LightLaserSkill
+import io.github.yoonseo.pastellib.celestia.skills.SwordDemonSkill
+import io.github.yoonseo.pastellib.celestia.models.SwordDemon
+import io.github.yoonseo.pastellib.celestia.skills.LightSakura
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import kotlinx.coroutines.CoroutineDispatcher
@@ -37,7 +37,6 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitScheduler
 import org.bukkit.util.Transformation
-import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import kotlin.coroutines.CoroutineContext
@@ -64,6 +63,7 @@ class PastelLib : JavaPlugin() {
         Gun.initalize()
         LightLaserSkill()
         SwordDemonSkill()
+        LightSakura()
         getCommand("gun")?.also { it.tabCompleter = GunCommandTabCompleter() }?.setExecutor(GunCommand())
         getCommand("task")?.setExecutor(TaskCommand())
         getCommand("model")?.setExecutor(ModelCommand())

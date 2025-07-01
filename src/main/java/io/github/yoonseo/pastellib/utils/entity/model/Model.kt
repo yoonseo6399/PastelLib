@@ -87,6 +87,12 @@ abstract class Model<T : Display>(val name: String){
             AdvancedBlockDisplay.getBy(it as BlockDisplay).globalRotation(quaternionf)
         }
     }
+    fun interpolation(){
+        displays.forEach {
+            it.interpolationDuration = 1
+            it.interpolationDelay = -1
+        }
+    }
 
 
     fun validate() : Boolean {

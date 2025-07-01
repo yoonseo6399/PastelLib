@@ -1,9 +1,7 @@
 package io.github.yoonseo.pastellib.utils.entity.model
 
-import io.github.yoonseo.pastellib.utils.debug
 import io.github.yoonseo.pastellib.utils.entity.blockDisplays.getRotation3x3
 import io.github.yoonseo.pastellib.utils.entity.blockDisplays.toMatrix4f
-import io.github.yoonseo.pastellib.utils.forceDamage
 import io.github.yoonseo.pastellib.utils.tasks.Promise
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
@@ -16,8 +14,7 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.util.Transformation
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import java.util.Collections
-import java.util.Queue
+import java.util.function.Consumer
 import java.util.function.Predicate
 import kotlin.time.Duration
 
@@ -73,13 +70,13 @@ open class AnimationModule<T : Display> : ModelModule<T>(),Cloneable {
         if(untilEndRepeating != null) {
             untilPromise = syncRepeating { model?.let { untilEndRepeating!!.invoke(it) } }
         }
-        if(animationQueue.size == 0) return //TODO repeating Until End 의 뜻과 맞지 않음, 이러면 무한 반복이 됌
+        //if(animationQueue.size == 0) return //TODO repeating Until End 의 뜻과 맞지 않음, 이러면 무한 반복이 됌
         val ani = animationQueue[index]
         ani.second(model!!)
 
         if(animationQueue.size-1 > index){
             delayPromise = later(ani.first.toTicks()) {animate(index+1) }
-        }else later(ani.first.toTicks()) { untilPromise?.cancel() }
+        }else later(ani.first.toTicks()) { if(untilPromise?.isCanceled == false) untilPromise?.cancel() }
     }
 
     //-1 은 에니메이션의 끝
@@ -170,6 +167,31 @@ class SingleDamageModule<T : Display>(
         }
     }
 }
+class TaskModule<T : Display> private constructor(val period : Int = 0,var promise: Promise? = null,val repeatingBlock : Consumer<Model<T>>?) : ModelModule<T>(){
+    constructor(promise: Promise) : this(0,promise,null)
+    constructor(period: Int,block: Consumer<Model<T>>) : this(period,null,block)
+    private var _period = 0
+
+
+    override fun onAttach(model: Model<T>) {
+        super.onAttach(model)
+        //다른방법으로 task 등록 허용
+        if(repeatingBlock != null) promise = syncRepeating {
+            if(period == 0 || _period == period){
+                repeatingBlock.accept(model)
+                _period = 0
+            }else _period ++
+        }
+    }
+
+    override fun onDetach(model: Model<T>) {
+        promise?.cancel()
+        super.onDetach(model)
+    }
+}
+
+
+
 fun LivingEntity.damage(damageAmount : Double, casuingEntity: Entity, damageType: DamageType, noDamageTick : Boolean = false){
     if(noDamageTick) noDamageTicks = 0
     damage(damageAmount, DamageSource.builder(damageType).withDirectEntity(this).withCausingEntity(casuingEntity).build())

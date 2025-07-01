@@ -1,5 +1,8 @@
 package io.github.yoonseo.pastellib.utils
 
+import io.github.yoonseo.pastellib.celestia.Celestia
+import io.github.yoonseo.pastellib.celestia.models.EnergyRing
+import io.github.yoonseo.pastellib.celestia.models.Lighting
 import io.github.yoonseo.pastellib.utils.entity.blockDisplays.AdvancedBlockDisplay
 import io.github.yoonseo.pastellib.utils.entity.model.*
 import org.bukkit.Bukkit
@@ -8,6 +11,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.BlockDisplay
+import org.bukkit.entity.Player
 import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 
@@ -26,13 +30,6 @@ class TaskCommand : CommandExecutor {
 
         if(args.size == 1 && args[0] == "init"){
             debug {
-                val e = EnergyRing(commandJuho).also { it.renderer.load(commandJuho.location) }
-                executeOnItem(Material.GLASS){
-                    if(e.energy<8) e.energy++
-                }
-                executeOnItem(Material.STONE){
-                    if(e.energy>0) e.energy--
-                }
 
                 executeOnItem(Material.BREEZE_ROD){
                     testModel = testModel ?: TestModel().renderer.load(commandJuho.location)
@@ -61,6 +58,9 @@ class TaskCommand : CommandExecutor {
                 commandJuho.sendMessage("initalizing")
             }
         }
+
+        if(args.size == 1 && args[0] == "celestia" && sender is Player) Celestia(sender)
+        if(args.size == 1 && args[0] == "lighting" && sender is Player) Lighting(sender,7,sender.location.direction).renderer.load(sender.eyeLocation)
         return true
     }
 }

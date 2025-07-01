@@ -1,24 +1,17 @@
-package io.github.yoonseo.pastellib.utils.skill
+package io.github.yoonseo.pastellib.celestia.skills
 
-import io.github.yoonseo.pastellib.utils.debug
-import io.github.yoonseo.pastellib.utils.entity.model.LightLaser
-import io.github.yoonseo.pastellib.utils.entity.particle.particles.FireParticle
-import io.github.yoonseo.pastellib.utils.entity.particle.showParticle
+import io.github.yoonseo.pastellib.celestia.models.LightLaser
 import io.github.yoonseo.pastellib.utils.runInMainThread
-import io.github.yoonseo.pastellib.utils.showParticle
-import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
+import io.github.yoonseo.pastellib.utils.skill.ActivationMethod
+import io.github.yoonseo.pastellib.utils.skill.Skill
 import io.github.yoonseo.pastellib.utils.ticks
 import kotlinx.coroutines.delay
 import org.bukkit.Material
 import org.bukkit.entity.LivingEntity
-import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.util.Vector
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class LightLaserSkill : Skill((3).seconds) {
     init {

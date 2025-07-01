@@ -37,7 +37,14 @@ abstract class DisplayParticle<T : Display> : Cloneable {
     public abstract override fun clone() : DisplayParticle<*>
 }
 fun randomNegativedInclude() : Double = if((0..1).random() == 0) random() else -random()
-fun randomVector() = Vector(randomNegativedInclude(), randomNegativedInclude(), randomNegativedInclude()).normalize()
+fun randomVector(): Vector {
+    val theta = Math.random() * 2 * Math.PI
+    val phi = Math.acos(2 * Math.random() - 1)
+    val x = Math.sin(phi) * Math.cos(theta)
+    val y = Math.sin(phi) * Math.sin(theta)
+    val z = Math.cos(phi)
+    return Vector(x, y, z)
+}
 //class BlockParticle : DisplayParticle() {}
 
 

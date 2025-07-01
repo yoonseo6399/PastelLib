@@ -8,7 +8,7 @@ import org.bukkit.util.Vector
 class Ray(
     val loc1 : Location,
     val loc2 : Location,
-    private val checkingInterval : Double = 0.2
+    var checkingInterval : Double = 0.2
 ) : Iterable<Location>{
 
     fun distance() = loc1.distance(loc2)

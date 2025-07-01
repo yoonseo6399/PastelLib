@@ -2,6 +2,7 @@ package io.github.yoonseo.pastellib.utils.tasks
 
 import io.github.yoonseo.pastellib.PastelLib
 import io.github.yoonseo.pastellib.utils.log
+import io.github.yoonseo.pastellib.utils.ticks
 import org.bukkit.Bukkit
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -11,19 +12,40 @@ enum class TaskType {
 }
 //TODO: Implement WaitForCondition Task
 open class Promise(val id : Int,val type : TaskType = TaskType.Undefined) {
+    val creationTime : Int = Bukkit.getCurrentTick()
+    val lifetime : Int
+        get() = Bukkit.getCurrentTick() - creationTime
     var isCanceled = false
         internal set
-    var timeout : Int? = null
+    private val terminationMethods = mutableListOf<TerminationMethod>()
+
     fun cancel() {
         if(isCanceled) throw IllegalStateException("Task is already canceled")
         Bukkit.getScheduler().cancelTask(id)
         isCanceled = true
     }
-    fun setDeathTime(time : Int) : Promise {
-        timeout = time
-        return this
+    fun checkForTermination(){
+        val termination = terminationMethods.any { it.check(this) }
+        if(termination) cancel()
+    }
+    infix fun addTermination(terminationMethod: TerminationMethod){
+        terminationMethods.add(terminationMethod)
     }
 }
+
+
+interface TerminationMethod {
+    fun check(promise: Promise) : Boolean
+
+    //run final *time* tick and terminate it
+    class TimeOut(val time : Duration) : TerminationMethod {
+        override fun check(promise: Promise): Boolean {
+            return promise.lifetime >= time.toTicks()
+        }
+    }
+    class NumCycleAfter(num : Int) : TerminationMethod by TimeOut(num.ticks)
+}
+
 class AsyncPromise<T>(id : Int) : Promise(id){
     var value : T? = null
     fun complete(returned : T) {
@@ -35,12 +57,9 @@ class AsyncPromise<T>(id : Int) : Promise(id){
 fun syncRepeating(interval: Long = 1,block : Promise.() -> Unit) : Promise {
     var promise : Promise? = null
     val id = Bukkit.getScheduler().scheduleSyncRepeatingTask(PastelLib.instance, {
-        if (promise?.timeout != null){
-            promise!!.timeout = promise!!.timeout!! - 1
-            if(promise!!.timeout!! <= 0) promise!!.cancel()
-        }
         try {
             block(promise!!)
+            promise!!.checkForTermination()
         } catch (e : Exception) {
             log("task#${promise?.id} generated exception")
             e.printStackTrace()
