@@ -16,7 +16,7 @@ object SkillSystem {
     private val skillLocks = mutableMapOf<UUID,Mutex>()
     val skillFactories = mutableMapOf<String, () -> Skill>()
 
-    inline fun <reified E : Event,S : Skill> registerSkill(skillId : String, activationMethod: ActivationMethod<E>, noinline skillFactory : () -> S) {
+    fun <E : Event,S : Skill> registerSkill(skillId : String, activationMethod: ActivationMethod<E>, skillFactory : () -> S) {
         skillFactories[skillId] = skillFactory
         val listener = object : Listener {
             @EventHandler

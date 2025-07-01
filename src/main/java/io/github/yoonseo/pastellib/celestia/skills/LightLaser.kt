@@ -1,5 +1,6 @@
 package io.github.yoonseo.pastellib.celestia.skills
 
+import io.github.yoonseo.pastellib.celestia.celestiaCondition
 import io.github.yoonseo.pastellib.celestia.models.LightLaser
 import io.github.yoonseo.pastellib.utils.runInMainThread
 import io.github.yoonseo.pastellib.utils.skill.ActivationMethod
@@ -13,17 +14,15 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.util.Vector
 import kotlin.time.Duration.Companion.seconds
 
-class LightLaserSkill : Skill((3).seconds) {
-    init {
-        val method = object : ActivationMethod() {
-            @EventHandler
-            fun onSwapItem(e : PlayerSwapHandItemsEvent){
-                if(e.offHandItem.type != Material.GOLDEN_SWORD) return
-                e.isCancelled = true
-                skillInstance.initiate(e.player)
+class LightLaserSkill : CelestiaSkill("LightLaser",(15).seconds, energyCost = null) {
+    companion object {
+        var activationMethod = ActivationMethod.offhand {
+            if(it.offHandItem.type == Material.GOLDEN_SWORD && celestiaCondition(it.player) { it.phase == 2 } == true){
+                it.isCancelled = true
+                return@offhand true
             }
+            return@offhand false
         }
-        setActivationMethod(method)
     }
 
     override suspend fun cast(caster : LivingEntity) {

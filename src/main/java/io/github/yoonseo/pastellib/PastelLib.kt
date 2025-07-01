@@ -2,6 +2,7 @@ package io.github.yoonseo.pastellib
 
 import io.github.yoonseo.pastellib.activities.Sit
 import io.github.yoonseo.pastellib.activities.isSitting
+import io.github.yoonseo.pastellib.celestia.models.Lighting
 import io.github.yoonseo.pastellib.guns.Gun
 import io.github.yoonseo.pastellib.guns.GunCommand
 import io.github.yoonseo.pastellib.guns.GunCommandTabCompleter
@@ -16,6 +17,7 @@ import io.github.yoonseo.pastellib.celestia.skills.LightLaserSkill
 import io.github.yoonseo.pastellib.celestia.skills.SwordDemonSkill
 import io.github.yoonseo.pastellib.celestia.models.SwordDemon
 import io.github.yoonseo.pastellib.celestia.skills.LightSakura
+import io.github.yoonseo.pastellib.utils.skill.SkillSystem
 import io.github.yoonseo.pastellib.utils.tasks.later
 import io.github.yoonseo.pastellib.utils.tasks.syncRepeating
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,6 +35,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
+import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitScheduler
@@ -61,9 +64,14 @@ class PastelLib : JavaPlugin() {
         modelFileManager = ModelFileManager()
         Sit.initialize()
         Gun.initalize()
-        LightLaserSkill()
-        SwordDemonSkill()
-        LightSakura()
+        SkillSystem.registerSkill("SwordDemon",SwordDemonSkill.activationMethod) { SwordDemonSkill() }
+        SkillSystem.registerSkill("LightSakura",LightSakura.activationMethod) { LightSakura() }
+        SkillSystem.registerSkill("LightLaser",LightLaserSkill.activationMethod) { LightLaserSkill() }
+
+
+
+
+
         getCommand("gun")?.also { it.tabCompleter = GunCommandTabCompleter() }?.setExecutor(GunCommand())
         getCommand("task")?.setExecutor(TaskCommand())
         getCommand("model")?.setExecutor(ModelCommand())

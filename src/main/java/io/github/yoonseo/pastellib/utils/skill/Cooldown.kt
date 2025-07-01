@@ -17,6 +17,7 @@ import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import java.util.*
 import kotlin.concurrent.timerTask
 import kotlin.math.round
@@ -29,7 +30,7 @@ open class Skill(
     val condition : (LivingEntity) -> Boolean = {true}
 ) {
     val mutex = Mutex()
-
+    var activationMethod : ActivationMethod<*>? = null
     var status : SkillStatus = SkillStatus.READY
     var lastCast : Int = 0
 
@@ -100,7 +101,11 @@ open class Skill(
         caster.sendActionBar(Component.text(message).color(NamedTextColor.RED))
     }}
 class ActivationMethod<E : Event>(val casterProvider : (E) -> LivingEntity,val block : Skill.(E) -> Boolean) {
-    fun leftClick(block : Skill.(E) -> Boolean) = ActivationMethod<PlayerInteractEvent>({it.player}) { skill, e -> if(e.action.isLeftClick) block(skill) else false }
+    companion object{
+        fun leftClick(block : Skill.(PlayerInteractEvent) -> Boolean) = ActivationMethod<PlayerInteractEvent>({it.player}) { e -> if(e.action.isLeftClick) block(e) else false }
+        fun rightClick(block : Skill.(PlayerInteractEvent) -> Boolean) = ActivationMethod<PlayerInteractEvent>({it.player}) { e -> if(e.action.isRightClick) block(e) else false }
+        fun offhand(block : Skill.(PlayerSwapHandItemsEvent) -> Boolean) = ActivationMethod<PlayerSwapHandItemsEvent>({it.player}) { e -> block(e) }
+    }
 }
 enum class SkillStatus {
     READY,

@@ -59,6 +59,11 @@ class Celestia(val body : Player) {
         }
     }
 }
+inline fun <R>celestiaCondition(caster : LivingEntity,block : (Celestia) -> R?) : R?{
+    val celestia = Celestia.instance ?: return null
+    if(celestia.body == caster) return block(celestia)
+    return null
+}
 class CelestiaEventHandler(val c: Celestia) : Listener {
     @EventHandler
     fun onDamaged(e : EntityDamageEvent){
