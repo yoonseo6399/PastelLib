@@ -13,19 +13,22 @@ import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
 import java.util.*
+import kotlin.concurrent.timerTask
 import kotlin.math.round
 import kotlin.time.Duration
 
 open class Skill(
+    val skillID : String,
     var defaultCooldown: Duration = Duration.ZERO,
     val chargeTime : Duration? = null,
     val condition : (LivingEntity) -> Boolean = {true}
 ) {
-    val skillLocks = mutableMapOf<UUID, Mutex>() //✅ 더 좋은 구조: SkillSystem 에서 관리
+    val mutex = Mutex()
 
     var status : SkillStatus = SkillStatus.READY
     var lastCast : Int = 0
@@ -33,17 +36,12 @@ open class Skill(
     companion object {
         private val coroutineScope = CoroutineScope(Job() + Dispatchers.Default + CoroutineName("Skill"))
     }
-    fun setActivationMethod(activationMethod: ActivationMethod) {
-        activationMethod.skillInstance = this
-        Bukkit.getPluginManager().registerEvents(activationMethod,PastelLib.instance)
-    }
     fun initiate(caster : LivingEntity){
 
         //READY or Condition 이 아니라면
         if(status != SkillStatus.READY || !condition.invoke(caster)) return notReady(caster,status)
 
         status = SkillStatus.CASTING //TODO 만약 ChargeTime 이 있다면 Cancel Charge 만들어야 동기화 오류 안남, 마나통같은거 쓸때 동기화 오류 가능
-        val mutex = getMutexFor(caster)
         coroutineScope.launch {
             mutex.withLock {
                 if(!hasEnergyAndPay(caster)) return@withLock
@@ -68,9 +66,7 @@ open class Skill(
             }
         }
     }
-    fun getMutexFor(caster: LivingEntity): Mutex {
-        return skillLocks.getOrPut(caster.uniqueId) { Mutex() }
-    }
+
 
     private fun hasEnergyAndPay(caster: LivingEntity) : Boolean{
         val pool = getEnergyPool(caster)
@@ -103,29 +99,8 @@ open class Skill(
         }
         caster.sendActionBar(Component.text(message).color(NamedTextColor.RED))
     }}
-abstract class ActivationMethod : Listener {
-    lateinit var skillInstance : Skill
-    companion object {
-        fun leftClickWith(material: Material, block: (Player) -> Unit): ActivationMethod {
-            return object : ActivationMethod() {
-                @EventHandler
-                fun onInteract(e: PlayerInteractEvent) {
-                    if (!e.action.isLeftClick || e.item?.type != material) return
-                    block(e.player)
-                }
-            }
-        }
-        fun rightClickWith(material: Material, block: (Player) -> Unit): ActivationMethod {
-            return object : ActivationMethod() {
-                @EventHandler
-                fun onInteract(e: PlayerInteractEvent) {
-                    if (!e.action.isRightClick || e.item?.type != material) return
-                    block(e.player)
-                }
-            }
-        }
-    }
-
+class ActivationMethod<E : Event>(val casterProvider : (E) -> LivingEntity,val block : Skill.(E) -> Boolean) {
+    fun leftClick(block : Skill.(E) -> Boolean) = ActivationMethod<PlayerInteractEvent>({it.player}) { skill, e -> if(e.action.isLeftClick) block(skill) else false }
 }
 enum class SkillStatus {
     READY,

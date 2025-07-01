@@ -18,7 +18,7 @@ import org.bukkit.event.player.PlayerInteractEvent
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 
-class SwordDemonSkill : Skill(defaultCooldown = (3).seconds, condition = getCelestiaCondition(1)){
+class SwordDemonSkill : Skill(defaultCooldown = (3).seconds){
     init {
         val method = object : ActivationMethod() {
             @EventHandler
@@ -33,7 +33,6 @@ class SwordDemonSkill : Skill(defaultCooldown = (3).seconds, condition = getCele
     override suspend fun cast(caster: LivingEntity) {
         require(Celestia.instance != null)
         if(Celestia.instance?.phase == 2) defaultCooldown = ZERO
-        runInMainThread { Celestia.instance!!.energyPool -= 1 }
         repeat(3){
             runInMainThread { magic(caster) }
             delay((1).ticks)
@@ -46,7 +45,7 @@ class SwordDemonSkill : Skill(defaultCooldown = (3).seconds, condition = getCele
     }
 
     override fun notReady(caster: LivingEntity,status: SkillStatus) {
-        if(status == SkillStatus.COOLDOWN) caster.sendActionBar(Component.text("[ 쿨타임중입니다 ${getCooldown()}s ]").color(NamedTextColor.RED))
+        if(status == SkillStatus.COOLDOWN) caster.sendActionBar(Component.text("[ 쿨타임중입니다 ${getCooldown(caster)}s ]").color(NamedTextColor.RED))
         else caster.sendActionBar(Component.text("[ 에너지 준위가 낮습니다 ${Celestia.instance?.energyPool} ]").color(NamedTextColor.RED))
     }
 }
@@ -55,4 +54,4 @@ fun getCelestiaCondition(energyRequired : Int,phase : Int = 0) : (LivingEntity) 
     { Celestia.instance != null
             && if (phase == 0) true else phase == Celestia.instance!!.phase
             && Celestia.instance!!.body == it
-            && Celestia.instance!!.energyPool >= energyRequired }
+            /*&& Celestia.instance!!.energyPool >= energyRequired*/ }

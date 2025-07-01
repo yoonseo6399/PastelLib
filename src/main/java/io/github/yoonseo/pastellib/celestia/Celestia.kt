@@ -26,11 +26,11 @@ class Celestia(val body : Player) {
     var phase = 1
         private set
     var eRing : EnergyRing? = null ; val regenTime = (1).seconds
-    var energyPool = EnergyPool(AtomicDouble(100.0)) // 1페라면 에너지 제한 없에기
+    var energyPool = EnergyPool(100.0) // 1페라면 에너지 제한 없에기
         get() {
             if(phase == 1) return field
             else {
-                field.setValue(eRing!!.energy.toDouble())
+                field.value = eRing!!.energy.toDouble()
                 return field
             }
         }
@@ -57,7 +57,6 @@ class Celestia(val body : Player) {
             eRing = EnergyRing(body,regenTime).also { it.renderer.load(body.location) }
 
         }
-        debug { commandJuho.sendMessage("phase set $phase") }
     }
 }
 class CelestiaEventHandler(val c: Celestia) : Listener {
