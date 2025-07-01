@@ -18,6 +18,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
+import java.net.http.WebSocket
 import java.util.*
 import kotlin.concurrent.timerTask
 import kotlin.math.round
@@ -45,7 +46,8 @@ open class Skill(
         status = SkillStatus.CASTING //TODO 만약 ChargeTime 이 있다면 Cancel Charge 만들어야 동기화 오류 안남, 마나통같은거 쓸때 동기화 오류 가능
         coroutineScope.launch {
             mutex.withLock {
-                if(!hasEnergyAndPay(caster)) return@withLock
+
+                if(runInMainThread { hasEnergyAndPay(caster) }) return@withLock
                 if(chargeTime != null) {
                     status = SkillStatus.CHARGING
                     runInMainThread { charge(caster) }
@@ -73,15 +75,16 @@ open class Skill(
         val pool = getEnergyPool(caster)
         val cost = getEnergyCostFor(caster)
         if(pool != null && cost != null) {
-            if(pool.value - cost  >= 0){
-                pool.value -= cost
-                return true
+            while (true) {
+                val current = pool.value
+                if (current < cost) return false
+                if (pool.compareAndSet(current, current - cost)) return true
             }
             return false
         }
         return true
     }
-    open fun getEnergyCostFor(caster: LivingEntity) : Double? = null
+    open fun getEnergyCostFor(caster: LivingEntity) : Double? = null //suspend ?
     open fun getCooldownFor(caster : LivingEntity) = defaultCooldown
     fun getCooldown(caster: LivingEntity) : Double {
         defaultCooldown.toTicks()
@@ -96,7 +99,7 @@ open class Skill(
             SkillStatus.COOLDOWN -> "[ 쿨타임중입니다 ${getCooldown(caster)}s ]"
             SkillStatus.CASTING -> "[ 스킬 시전 중입니다 ]"
             SkillStatus.CHARGING -> "[ 차지 중입니다 ]"
-            else -> "[ 에너지 준위가 낮습니다 ${Celestia.instance?.energyPool} ]"
+            else -> "[ 에너지 준위가 낮습니다 ${Celestia.instance?.energyPool?.value} ]"
         }
         caster.sendActionBar(Component.text(message).color(NamedTextColor.RED))
     }}

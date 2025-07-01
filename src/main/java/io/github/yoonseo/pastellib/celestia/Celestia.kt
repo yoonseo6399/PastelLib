@@ -26,7 +26,7 @@ class Celestia(val body : Player) {
     var phase = 1
         private set
     var eRing : EnergyRing? = null ; val regenTime = (1).seconds
-    var energyPool = EnergyPool(100.0) // 1페라면 에너지 제한 없에기
+    var energyPool = EnergyPool(100.0) { _ , new -> eRing?.energy = new.toInt()} // 1페라면 에너지 제한 없에기
         get() {
             if(phase == 1) return field
             else {
