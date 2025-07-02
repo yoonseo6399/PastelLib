@@ -107,7 +107,7 @@ class ActivationMethod<E : Event>(val casterProvider : (E) -> LivingEntity,val b
     companion object{
         fun leftClick(block : Skill.(PlayerInteractEvent) -> Boolean) = ActivationMethod<PlayerInteractEvent>({it.player}) { e -> if(e.action.isLeftClick) block(e) else false }
         fun rightClick(block : Skill.(PlayerInteractEvent) -> Boolean) = ActivationMethod<PlayerInteractEvent>({it.player}) { e -> if(e.action.isRightClick) block(e) else false }
-        fun offhand(block : Skill.(PlayerSwapHandItemsEvent) -> Boolean) = ActivationMethod<PlayerSwapHandItemsEvent>({it.player}) { e -> block(e) }
+        fun offhand(cancel : Boolean,block : Skill.(PlayerSwapHandItemsEvent) -> Boolean) = ActivationMethod<PlayerSwapHandItemsEvent>({it.player}) { e -> if(block(e)) { e.isCancelled = true ; true } else false }
     }
 }
 enum class SkillStatus {

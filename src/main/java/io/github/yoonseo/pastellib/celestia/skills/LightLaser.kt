@@ -1,6 +1,7 @@
 package io.github.yoonseo.pastellib.celestia.skills
 
 import io.github.yoonseo.pastellib.celestia.celestiaCondition
+import io.github.yoonseo.pastellib.celestia.isCelestiaItem
 import io.github.yoonseo.pastellib.celestia.models.LightLaser
 import io.github.yoonseo.pastellib.utils.runInMainThread
 import io.github.yoonseo.pastellib.utils.skill.ActivationMethod
@@ -16,13 +17,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class LightLaserSkill : CelestiaSkill("LightLaser",(15).seconds, energyCost = null) {
     companion object {
-        var activationMethod = ActivationMethod.offhand {
-            if(it.offHandItem.type == Material.GOLDEN_SWORD && celestiaCondition(it.player) { it.phase == 2 } == true){
-                it.isCancelled = true
-                return@offhand true
-            }
-            return@offhand false
-        }
+        var activationMethod = ActivationMethod.offhand(true) { isCelestiaItem(it.offHandItem) && celestiaCondition(it.player) { it.phase == 2 } == true }
     }
 
     override suspend fun cast(caster : LivingEntity) {
@@ -35,9 +30,9 @@ class LightLaserSkill : CelestiaSkill("LightLaser",(15).seconds, energyCost = nu
     }
     fun magic(caster: LivingEntity){
         val targets = caster.location.world.getNearbyEntities(caster.location,30.0,30.0,30.0){ it != caster && it is LivingEntity}.map { it as LivingEntity }
-        var expire = 40
         for (target in targets) {
-            LightLaser(caster, target.location.setDirection(Vector(0.0,0.0,1.0))).renderer.load(target.location.setDirection(Vector(0.0,0.0,1.0)))
+            LightLaser(caster, target.location.setDirection(Vector(0.0,0.0,1.0)))
+                .renderer.load(target.location.setDirection(Vector(0.0,0.0,1.0)))
         }
     }
 }

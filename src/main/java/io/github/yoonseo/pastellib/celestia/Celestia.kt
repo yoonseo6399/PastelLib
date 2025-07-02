@@ -8,6 +8,7 @@ import io.github.yoonseo.pastellib.utils.skill.EnergyPool
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
+import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.LivingEntity
@@ -15,6 +16,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import kotlin.time.Duration.Companion.seconds
@@ -64,10 +66,10 @@ inline fun <R>celestiaCondition(caster : LivingEntity,block : (Celestia) -> R?) 
     if(celestia.body == caster) return block(celestia)
     return null
 }
+fun isCelestiaItem(item : ItemStack) = item.type == Material.GOLDEN_SWORD
 class CelestiaEventHandler(val c: Celestia) : Listener {
     @EventHandler
     fun onDamaged(e : EntityDamageEvent){
-
         if(e.entity != c.body) return
         val percent = c.body.health/c.body.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
         c.bossbar.progress(percent.toFloat())

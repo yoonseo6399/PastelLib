@@ -2,7 +2,10 @@ package io.github.yoonseo.pastellib.utils.selectors
 
 import io.github.yoonseo.pastellib.utils.lookVector
 import org.bukkit.Location
+import org.bukkit.block.Block
+import org.bukkit.entity.Entity
 import org.bukkit.util.Vector
+import kotlin.reflect.full.isSubclassOf
 
 
 class Ray(
@@ -17,6 +20,14 @@ class Ray(
 
     override fun iterator(): Iterator<Location> {
         return LineIterator(this, checkingInterval)
+    }
+    inline fun <reified T : Any> select(block : List<T>.(Location) -> Boolean){
+        TODO()
+        if(T::class.isSubclassOf(Entity::class)){
+
+        }else if(T::class.isSubclassOf(Block::class)){
+
+        }else throw IllegalArgumentException("${T::class.simpleName} is not a subclass of Entity or Block")
     }
 }
 class LineIterator(private val ray : Ray, private val interval : Double) : Iterator<Location> {
