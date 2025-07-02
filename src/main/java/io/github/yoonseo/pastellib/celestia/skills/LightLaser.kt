@@ -22,9 +22,7 @@ class LightLaserSkill : CelestiaSkill("LightLaser",(15).seconds, energyCost = nu
 
     override suspend fun cast(caster : LivingEntity) {
         repeat(5){
-            runInMainThread {
-                magic(caster)
-            }
+            magic(caster)
             delay((80).ticks)
         }
     }

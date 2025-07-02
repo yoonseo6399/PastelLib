@@ -2,6 +2,7 @@ package io.github.yoonseo.pastellib.utils.skill
 
 import io.github.yoonseo.pastellib.PastelLib
 import io.github.yoonseo.pastellib.celestia.Celestia
+import io.github.yoonseo.pastellib.mainThread
 import io.github.yoonseo.pastellib.utils.runInMainThread
 import io.github.yoonseo.pastellib.utils.tasks.toTicks
 import kotlinx.coroutines.*
@@ -44,17 +45,21 @@ open class Skill(
         if(status != SkillStatus.READY || !condition.invoke(caster)) return notReady(caster,status)
 
         status = SkillStatus.CASTING //TODO 만약 ChargeTime 이 있다면 Cancel Charge 만들어야 동기화 오류 안남, 마나통같은거 쓸때 동기화 오류 가능
-        coroutineScope.launch {
+        coroutineScope.launch(mainThread) {
             mutex.withLock {
-
-                if(runInMainThread { hasEnergyAndPay(caster) }) return@withLock
+                println("a")
+                if(!hasEnergyAndPay(caster)) {
+                    status = SkillStatus.READY // 다시 실행가능하게
+                    return@withLock notReady(caster,SkillStatus.LOW_ENERGY)
+                }
                 if(chargeTime != null) {
                     status = SkillStatus.CHARGING
-                    runInMainThread { charge(caster) }
+                    charge(caster)
                     delay(chargeTime)
                 }
 
                 status = SkillStatus.CASTING
+                println("aa")
                 cast(caster)
 
                 val cooldown = getCooldownFor(caster)
@@ -63,7 +68,7 @@ open class Skill(
                     lastCast = Bukkit.getCurrentTick()
                     delay(cooldown)
                     status = SkillStatus.READY
-                    runInMainThread { cooldownComplete(caster) }
+                    cooldownComplete(caster)
                 }
                 status = SkillStatus.READY
             }
@@ -71,18 +76,18 @@ open class Skill(
     }
 
 
-    private fun hasEnergyAndPay(caster: LivingEntity) : Boolean{
+    private fun hasEnergyAndPay(caster: LivingEntity): Boolean {
         val pool = getEnergyPool(caster)
         val cost = getEnergyCostFor(caster)
-        if(pool != null && cost != null) {
-            while (true) {
-                val current = pool.value
-                if (current < cost) return false
-                if (pool.compareAndSet(current, current - cost)) return true
+        if (pool != null && cost != null) {
+            val current = pool.value
+            if (current < cost) {
+                return false // 에너지가 부족하면 즉시 실패 반환
             }
-            return false
+            // compareAndSet 결과를 직접 반환 (성공하면 true, 실패하면 false)
+            return pool.compareAndSet(current, current - cost)
         }
-        return true
+        return true // 에너지 풀이나 비용이 없으면 항상 성공
     }
     open fun getEnergyCostFor(caster: LivingEntity) : Double? = null //suspend ?
     open fun getCooldownFor(caster : LivingEntity) = defaultCooldown
@@ -99,7 +104,8 @@ open class Skill(
             SkillStatus.COOLDOWN -> "[ 쿨타임중입니다 ${getCooldown(caster)}s ]"
             SkillStatus.CASTING -> "[ 스킬 시전 중입니다 ]"
             SkillStatus.CHARGING -> "[ 차지 중입니다 ]"
-            else -> "[ 에너지 준위가 낮습니다 ${Celestia.instance?.energyPool?.value} ]"
+            SkillStatus.LOW_ENERGY -> "[ 에너지 준위가 낮습니다 ${Celestia.instance?.energyPool?.value} ]"
+            else -> "ㅅㅂ 뭐농?"
         }
         caster.sendActionBar(Component.text(message).color(NamedTextColor.RED))
     }}
@@ -114,5 +120,6 @@ enum class SkillStatus {
     READY,
     COOLDOWN,
     CASTING,
-    CHARGING
+    CHARGING,
+    LOW_ENERGY
 }

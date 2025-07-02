@@ -40,7 +40,7 @@ class LineIterator(private val ray : Ray, private val interval : Double) : Itera
 
     override fun next(): Location {
         current.add(dir)
-        return current
+        return current.clone()
     }
 }
 infix fun Location.rayTo(location: Location) = Ray(this,location)

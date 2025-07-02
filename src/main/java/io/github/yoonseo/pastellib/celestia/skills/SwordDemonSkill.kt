@@ -29,7 +29,7 @@ class SwordDemonSkill : CelestiaSkill("SwordDemon",(3).seconds, energyCost = 1.0
     override suspend fun cast(caster: LivingEntity) {
         require(Celestia.instance != null)
         repeat(3){
-            runInMainThread { magic(caster) }
+            magic(caster)
             delay((1).ticks)
         }
     }
@@ -41,10 +41,5 @@ class SwordDemonSkill : CelestiaSkill("SwordDemon",(3).seconds, energyCost = 1.0
     fun magic(caster: LivingEntity){
         SwordDemon(caster).renderer.load(caster.location)
         caster.playSound(Sound.sound(org.bukkit.Sound.ITEM_TRIDENT_THROW,Sound.Source.PLAYER,2f,0.9f))
-    }
-
-    override fun notReady(caster: LivingEntity,status: SkillStatus) {
-        if(status == SkillStatus.COOLDOWN) caster.sendActionBar(Component.text("[ 쿨타임중입니다 ${getCooldown(caster)}s ]").color(NamedTextColor.RED))
-        else caster.sendActionBar(Component.text("[ 에너지 준위가 낮습니다 ${Celestia.instance?.energyPool} ]").color(NamedTextColor.RED))
     }
 }

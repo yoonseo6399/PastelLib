@@ -34,7 +34,6 @@ object SkillSystem {
             PlayerInteractEvent::class -> object : Listener {
                 @EventHandler
                 fun onEvent(e: PlayerInteractEvent) {
-                    @Suppress("UNCHECKED_CAST")
                     block(e as E)
                 }
             }
@@ -42,7 +41,6 @@ object SkillSystem {
             PlayerDropItemEvent::class -> object : Listener {
                 @EventHandler
                 fun onEvent(e: PlayerDropItemEvent) {
-                    @Suppress("UNCHECKED_CAST")
                     block(e as E)
                 }
             }
@@ -50,7 +48,6 @@ object SkillSystem {
             PlayerSwapHandItemsEvent::class -> object : Listener {
                 @EventHandler
                 fun onEvent(e: PlayerSwapHandItemsEvent) {
-                    @Suppress("UNCHECKED_CAST")
                     block(e as E)
                 }
             }
@@ -58,7 +55,6 @@ object SkillSystem {
             PlayerItemHeldEvent::class -> object : Listener {
                 @EventHandler
                 fun onEvent(e: PlayerItemHeldEvent) {
-                    @Suppress("UNCHECKED_CAST")
                     block(e as E)
                 }
             }
