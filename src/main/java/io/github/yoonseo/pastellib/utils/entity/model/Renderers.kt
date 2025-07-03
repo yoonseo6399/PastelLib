@@ -13,27 +13,25 @@ interface Renderer<T,R> {
     fun render(location: Location, data : T) : R
 }
 
-class ModelRenderer<T : Display>(val model : Model<T>) : Renderer<List<DisplayData>, Model<T>> {
-    var customRendering : ((Model<T>) -> Unit)? = null
-    fun load(location: Location) : Model<T> {
+class ModelRenderer<T : Display>(val model : Model<T>) : Renderer<List<DisplayData>, RenderResult<T>> {
+    //var customRendering : ((Model<T>) -> Unit)? = null
+    fun load(location: Location) : RenderResult<T> {
         val data = PastelLib.modelFileManager.loadModelData(model.name)
         require(data.isNotEmpty()) { "that name of model is not exist" }
         return render(location,data)
     }
-    override fun render(location: Location, data: List<DisplayData>): Model<T> {
+    override fun render(location: Location, data: List<DisplayData>): RenderResult<T> {
         val main = location.world.spawn(location.clone().setDirection(Vector(0,0,1)), BlockDisplay::class.java)
-        for (displayData in data) {
+        for (displayData in data) { // Text 추가시 고려
             main.addPassenger(DisplayRenderer().render(location.clone().setDirection(Vector(0,0,1)),displayData))
         }
-        model.mainDisplay = main
-        model.displayData = data
-        customRendering?.invoke(model)
-        return model
+        return RenderResult(main as T,data)
     }
 }
-fun <T : Display> modelRenderer(model : Model<T>,whenRendering : Model<T>.() -> Unit): ModelRenderer<T> {
-    return ModelRenderer(model).also { it.customRendering = whenRendering }
-}
+class RenderResult<T : Display>(val mainDisplay: T,val displayDatas : List<DisplayData>)
+//fun <T : Display> modelRenderer(model : Model<T>,whenRendering : Model<T>.() -> Unit): ModelRenderer<T> {
+//    return ModelRenderer(model).also { it.customRendering = whenRendering }
+//}
 
 class DisplayRenderer : Renderer<DisplayData, Display> {
     override fun render(location: Location, data: DisplayData): Display {

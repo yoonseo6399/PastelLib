@@ -12,9 +12,11 @@ import org.joml.AxisAngle4f
 import org.joml.Quaternionf
 import kotlin.time.Duration.Companion.seconds
 
-class LightLaser(val owner: LivingEntity, val loc : Location) : Model<BlockDisplay>("boss-laser-target"){
-    override val renderer: ModelRenderer<BlockDisplay> = modelRenderer(this) {
-        teleport(loc)
+class LightLaser(val owner: LivingEntity) : Model<BlockDisplay>("boss-laser-target"){
+    override val renderer: ModelRenderer<BlockDisplay> = ModelRenderer(this)
+    override fun initialize(location: Location, renderResult: RenderResult<BlockDisplay>) {
+        super.initialize(location, renderResult)
+
         val sizeModule = SizeModule<BlockDisplay>()
         attachModule(sizeModule)
         val animationModule = AnimationModule<BlockDisplay>()
@@ -26,7 +28,7 @@ class LightLaser(val owner: LivingEntity, val loc : Location) : Model<BlockDispl
                 } addTermination TerminationMethod.TimeOut((2).seconds)
             }
             then((1).seconds) {
-                LaserBeam(owner, loc).renderer.load(loc)
+                LaserBeam(owner).renderer.load(location)
             }
             then((2).seconds) {
                 syncRepeating {
@@ -40,18 +42,22 @@ class LightLaser(val owner: LivingEntity, val loc : Location) : Model<BlockDispl
         attachModule(animationModule)
         animationModule.animate()
     }
-    class LaserBeam(val owner: LivingEntity, val loc : Location) : Model<BlockDisplay>("boss-laser-beam"){
 
-        override val renderer: ModelRenderer<BlockDisplay> = modelRenderer(this) {
-            teleport(loc)
+    class LaserBeam(val owner: LivingEntity) : Model<BlockDisplay>("boss-laser-beam"){
+
+        override val renderer: ModelRenderer<BlockDisplay> = ModelRenderer(this)
+        override fun initialize(location: Location, renderResult: RenderResult<BlockDisplay>) {
+            super.initialize(location, renderResult)
+
+
             val sizeModule = SizeModule<BlockDisplay>()
             attachModule(sizeModule)
             val animationModule = AnimationModule<BlockDisplay>()
             animationModule.configureAnimation {
                 repeatUntilEnds { applyGlobalRotation(Quaternionf(AxisAngle4f(0.1f, 0f, 1f, 0f))) }
                 then((1).seconds) {
-                    location.world.playSound(loc, Sound.BLOCK_BEACON_DEACTIVATE, 1f, 0.9f)
-                    location.world.playSound(loc, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 1.2f)
+                    location.world.playSound(location, Sound.BLOCK_BEACON_DEACTIVATE, 1f, 0.9f)
+                    location.world.playSound(location, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 1.2f)
                     syncRepeating {
                         sizeModule.multiplyGlobally(1.1, 1.0, 1.1)
                     } addTermination TerminationMethod.TimeOut((1).seconds)

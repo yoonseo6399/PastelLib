@@ -3,6 +3,7 @@ package io.github.yoonseo.pastellib.celestia.models
 import io.github.yoonseo.pastellib.utils.debug
 import io.github.yoonseo.pastellib.utils.entity.model.*
 import io.github.yoonseo.pastellib.utils.tasks.toTicks
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.LivingEntity
@@ -23,25 +24,28 @@ class EnergyRing(val owner: LivingEntity,val energyRegen : Duration) : Model<Blo
         whenEnergyChanges(old,new)
     }
     override val renderer: ModelRenderer<BlockDisplay>
-        get() =  modelRenderer(this){
+        get() = ModelRenderer(this)
 
-            val task = TaskModule<BlockDisplay>(0){
-                teleport(
-                    owner.location.also { it.pitch = 0f } // 위아래 무시
-                    .add(owner.location.direction.setY(0).normalize().multiply(-0.7)).add(0.0,1.0,0.0) // 보정
-                )
-            }
-            val regenTask = TaskModule<BlockDisplay>(energyRegen.toTicks().toInt()){
-                if(energy in 0..<8) {
-                    energy++
-                }
-            }
-            attachModule(task)
-            attachModule(regenTask)
-            for (display in displays) {
-                display.teleportDuration = 1
+    override fun initialize(location: Location, renderResult: RenderResult<BlockDisplay>) {
+        super.initialize(location, renderResult)
+        val task = TaskModule<BlockDisplay>(0){
+            teleport(
+                owner.location.also { it.pitch = 0f } // 위아래 무시
+                .add(owner.location.direction.setY(0).normalize().multiply(-0.7)).add(0.0,1.0,0.0) // 보정
+            )
+        }
+        val regenTask = TaskModule<BlockDisplay>(energyRegen.toTicks().toInt()){
+            if(energy in 0..<8) {
+                energy++
             }
         }
+        attachModule(task)
+        attachModule(regenTask)
+        for (display in displays) {
+            display.teleportDuration = 1
+        }
+    }
+    //UI like update func
     fun whenEnergyChanges(old : Int,newValue : Int) {
         if(newValue == old) return
         if(!(0..8).contains(newValue)){

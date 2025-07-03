@@ -3,6 +3,7 @@ package io.github.yoonseo.pastellib.celestia.skills
 import io.github.yoonseo.pastellib.celestia.celestiaCondition
 import io.github.yoonseo.pastellib.celestia.isCelestiaItem
 import io.github.yoonseo.pastellib.celestia.models.LightLaser
+import io.github.yoonseo.pastellib.utils.entity.model.spawnModel
 import io.github.yoonseo.pastellib.utils.runInMainThread
 import io.github.yoonseo.pastellib.utils.skill.ActivationMethod
 import io.github.yoonseo.pastellib.utils.skill.Skill
@@ -29,8 +30,7 @@ class LightLaserSkill : CelestiaSkill("LightLaser",(15).seconds, energyCost = nu
     fun magic(caster: LivingEntity){
         val targets = caster.location.world.getNearbyEntities(caster.location,30.0,30.0,30.0){ it != caster && it is LivingEntity}.map { it as LivingEntity }
         for (target in targets) {
-            LightLaser(caster, target.location.setDirection(Vector(0.0,0.0,1.0)))
-                .renderer.load(target.location.setDirection(Vector(0.0,0.0,1.0)))
+            target.location.setDirection(Vector(0,0,1)).spawnModel(LightLaser::class,caster)
         }
     }
 }

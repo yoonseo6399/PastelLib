@@ -7,6 +7,7 @@ import io.github.yoonseo.pastellib.utils.debug
 import io.github.yoonseo.pastellib.utils.skill.EnergyPool
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.Sound
@@ -51,6 +52,7 @@ class Celestia(val body : Player) {
     fun nextPhase(){
         phase++
         if (phase == 2){
+            bossbar.name(Component.text("[ 셀레스티아 ]").color(NamedTextColor.YELLOW))
             body.addPotionEffect(PotionEffect(PotionEffectType.INVISIBILITY,20,1,false,false))
             body.getAttribute(Attribute.MAX_HEALTH)?.apply {
                 baseValue = 600.0
@@ -59,6 +61,11 @@ class Celestia(val body : Player) {
             eRing = EnergyRing(body,regenTime).also { it.renderer.load(body.location) }
 
         }
+    }
+
+    fun updateBossbar(){
+        val percent = body.health/body.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
+        bossbar.progress(percent.toFloat())
     }
 }
 inline fun <R>celestiaCondition(caster : LivingEntity,block : (Celestia) -> R?) : R?{
@@ -71,8 +78,7 @@ class CelestiaEventHandler(val c: Celestia) : Listener {
     @EventHandler
     fun onDamaged(e : EntityDamageEvent){
         if(e.entity != c.body) return
-        val percent = c.body.health/c.body.getAttribute(Attribute.MAX_HEALTH)!!.baseValue
-        c.bossbar.progress(percent.toFloat())
+        c.updateBossbar()
         if(c.phase == 1 && (e.entity as LivingEntity).health - e.damage <= 0){
             e.isCancelled = true
             c.nextPhase()

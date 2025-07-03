@@ -7,25 +7,12 @@ import org.bukkit.*
 import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.Display
 import org.joml.*
+import kotlin.reflect.KClass
 
 
-abstract class ModelPart{
-    var localTranslation : Vector3f = Vector3f()
-    fun rotate(quaternionf: Quaternionf){
-
-    }
-    fun teleport(location: Location){
-        //location.clone().add(localTranslation)
-    }
-}
 typealias DisplayModel = Model<BlockDisplay>
 
 
-class TestModel : Model<BlockDisplay>("test"){
-    override val renderer : ModelRenderer<BlockDisplay> = modelRenderer(this){
-
-    }
-}
 
 
 class DefaultModel<T : Display>(name : String) : Model<T>(name){
@@ -35,10 +22,37 @@ class DefaultModel<T : Display>(name : String) : Model<T>(name){
 
 
 
-abstract class Model<T : Display>(val name: String){
-
+abstract class Model<T : Display> protected constructor(val name: String){
+    companion object{
+        /**
+         * @param initializer called before model initialized, used for constructor's param injection or initialize
+         * @param parameter constructor's param **/
+        fun <T : Display,M : Model<T>> spawn(location: Location,modelClazz: KClass<M>,initializer : (M.() -> Unit)? = null,vararg parameter : Any?) : M{
+            val model = modelClazz.constructors.find { it.parameters.size == parameter.size }?.call(*parameter)
+                ?: throw IllegalArgumentException("cannot find matching constructor of ${modelClazz.simpleName} : ${modelClazz.constructors.first().parameters}")
+            val res: RenderResult<T> = model.renderer.load(location)
+            initializer?.let { model.it() }
+            model.initialize(location,res)
+            ModelManager.addModel(model)
+            return model
+        }
+        fun <T : Display,M : Model<T>> spawn(location: Location,modelClazz : KClass<M>,vararg parameter : Any?) = spawn(location,modelClazz,null,*parameter)
+        //var constructorFailureMessage = ""
+    }
+    open fun initialize(location: Location,renderResult: RenderResult<T>){
+        this._mainDisplay = renderResult.mainDisplay
+        this.displayData = renderResult.displayDatas
+    }
     abstract val renderer : ModelRenderer<T>
-    lateinit var mainDisplay: BlockDisplay
+    private lateinit var _mainDisplay: T
+    val mainDisplay: T
+        get() {
+            // 초기화 전에 접근 시도 시 명확한 에러 메시지 제공 (선택 사항이지만 추천)
+            if (!this::_mainDisplay.isInitialized) {
+                throw IllegalStateException("Model이 아직 완전히 초기화되지 않았습니다. 팩토리 메소드를 통해 생성해야 합니다.")
+            }
+            return _mainDisplay
+        }
     lateinit var displayData: List<DisplayData>
     val location : Location
         get() = mainDisplay.location
@@ -64,7 +78,7 @@ abstract class Model<T : Display>(val name: String){
     }
 
     open fun remove(){
-        modules.forEach { it.onDetach(this) }
+        modules.forEach { detachModule(it) }
         for (passenger in mainDisplay.passengers) {
             passenger.remove()
         }
@@ -78,11 +92,11 @@ abstract class Model<T : Display>(val name: String){
         }
     }
     fun rotate(quaternionf: Quaternionf){
-        AdvancedBlockDisplay.getBy(mainDisplay).rotate(quaternionf) // text Display 지원 안함 TODO
+        AdvancedBlockDisplay.getBy(mainDisplay as BlockDisplay).rotate(quaternionf) // text Display 지원 안함 TODO
         mainDisplay.passengers.forEach { AdvancedBlockDisplay.getBy(it as BlockDisplay).rotate(quaternionf) }
     }
     fun applyGlobalRotation(quaternionf: Quaternionf){
-        AdvancedBlockDisplay.getBy(mainDisplay).globalRotation(quaternionf)
+        AdvancedBlockDisplay.getBy(mainDisplay as BlockDisplay).globalRotation(quaternionf)
         displays.forEach {
             AdvancedBlockDisplay.getBy(it as BlockDisplay).globalRotation(quaternionf)
         }
@@ -96,7 +110,7 @@ abstract class Model<T : Display>(val name: String){
 
 
     fun validate() : Boolean {
-        return mainDisplay.passengers.all { it is Display || it is ModelPart }
+        return mainDisplay.passengers.all { it is Display }
     }
 }
 
@@ -112,4 +126,9 @@ class ValidationModule(val checkInterval : Int) : ModelModule<Display>() {
         task.cancel()
     }
 }
+fun <T : Display,M : Model<T>>Location.spawnModel(modelClazz : KClass<M>, initializer : (M.() -> Unit)? = null, vararg parameter : Any?) : M =
+    Model.spawn(this,modelClazz,initializer,parameter)
+
+fun <T : Display,M : Model<T>> Location.spawnModel(modelClazz : KClass<M>,vararg parameter : Any?) : M =
+    spawnModel(modelClazz, null,*parameter)
 
