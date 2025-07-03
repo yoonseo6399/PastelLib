@@ -31,30 +31,6 @@ class TaskCommand : CommandExecutor {
         if(args.size == 1 && args[0] == "init"){
             debug {
 
-                executeOnItem(Material.BREEZE_ROD){
-                    testModel = testModel ?: TestModel().renderer.load(commandJuho.location)
-                    if(commandJuho.isSneaking){
-                        testModel!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),1f,0f,0f)))
-                    }else testModel!!.applyGlobalRotation(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),1f,0f,0f)))
-                }
-                executeOnItem(Material.BLAZE_ROD){
-                    testModel = testModel ?: TestModel().renderer.load(commandJuho.location)
-                    if(commandJuho.isSneaking){
-                        testModel!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),0f,1f,0f)))
-                    }else testModel!!.applyGlobalRotation(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),0f,1f,0f)))
-                }
-                executeOnItem(Material.STICK){
-                    testModel = testModel ?: TestModel().renderer.load(commandJuho.location)
-                    if(commandJuho.isSneaking){
-                        testModel!!.rotate(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),0f,0f,1f)))
-                    }else testModel!!.applyGlobalRotation(Quaternionf().set(AxisAngle4f((Math.PI/3f).toFloat(),0f,0f,1f)))
-                }
-                executeOnItem(Material.END_CRYSTAL){
-                    testModel = testModel ?: TestModel().renderer.load(commandJuho.location)
-                    if(commandJuho.isSneaking){
-                        AdvancedBlockDisplay.getBy(testModel!!.displays[0]).debug()
-                    }else testModel!!.applyGlobalRotation(Quaternionf())
-                }
                 commandJuho.sendMessage("initalizing")
             }
         }

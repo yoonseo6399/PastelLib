@@ -28,7 +28,7 @@ class LightLaser(val owner: LivingEntity) : Model<BlockDisplay>("boss-laser-targ
                 } addTermination TerminationMethod.TimeOut((2).seconds)
             }
             then((1).seconds) {
-                LaserBeam(owner).renderer.load(location)
+                location.spawnModel(LaserBeam::class,owner)
             }
             then((2).seconds) {
                 syncRepeating {
@@ -70,7 +70,7 @@ class LightLaser(val owner: LivingEntity) : Model<BlockDisplay>("boss-laser-targ
                 then { remove() }
             }
             attachModule(animationModule)
-            attachModule(SimpleDamageModule(100, 50.0, owner, DamageType.LIGHTNING_BOLT, false) { it != owner })
+            attachModule(SimpleDamageModule(100, 100.0, owner, DamageType.LIGHTNING_BOLT, false) { it != owner })
             animationModule.animate()
         }
 

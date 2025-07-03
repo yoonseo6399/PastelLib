@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.AtomicDouble
 import io.github.yoonseo.pastellib.PastelLib
 import io.github.yoonseo.pastellib.celestia.models.EnergyRing
 import io.github.yoonseo.pastellib.utils.debug
+import io.github.yoonseo.pastellib.utils.entity.model.spawnModel
 import io.github.yoonseo.pastellib.utils.skill.EnergyPool
 import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
@@ -58,7 +59,7 @@ class Celestia(val body : Player) {
                 baseValue = 600.0
             }
             body.health = 600.0
-            eRing = EnergyRing(body,regenTime).also { it.renderer.load(body.location) }
+            eRing = body.location.spawnModel(EnergyRing::class,body,regenTime)
 
         }
     }

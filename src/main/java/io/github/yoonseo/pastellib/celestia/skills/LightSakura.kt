@@ -28,12 +28,23 @@ class LightSakura : CelestiaSkill("LightSakura", Duration.ZERO, energyCost = 4.0
     }
 
     override suspend fun cast(caster: LivingEntity) { require(caster is Player)
-        val targets = caster.location.world.getNearbyEntities(caster.location,15.0,15.0,15.0) { it != caster && it is LivingEntity }.toList().map { it as LivingEntity }
-        if(targets.isEmpty()) return
-        targets.sortedBy { it.location.distance(caster.location) }
+        val targets = caster.location.world.getNearbyEntities(caster.location, 15.0, 15.0, 15.0) { it != caster && it is LivingEntity }.map { it as LivingEntity }
+        if (targets.isEmpty()) return
+
+        val remainingTargets = targets.toMutableList()
+        val sortedTargets = mutableListOf<LivingEntity>()
+        var currentLocation = caster.location
+
+        while (remainingTargets.isNotEmpty()) {
+            val nearestTarget = remainingTargets.minByOrNull { it.location.distanceSquared(currentLocation) }!!
+            sortedTargets.add(nearestTarget)
+            remainingTargets.remove(nearestTarget)
+            currentLocation = nearestTarget.location
+        }
+
         hitParticle(caster.eyeLocation)
 
-        for ((i,now) in targets.withIndex()) {
+        for ((i, now) in sortedTargets.withIndex()) {
 //            val before = if(i == 0) caster else targets[i-1]
 //            val dir = before.eyeLocation lookVector e.eyeLocation
 //            dir.multiply(-1) // 번개는 뒤로 뿌림

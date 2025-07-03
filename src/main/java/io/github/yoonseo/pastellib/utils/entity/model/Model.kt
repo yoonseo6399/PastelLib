@@ -28,8 +28,19 @@ abstract class Model<T : Display> protected constructor(val name: String){
          * @param initializer called before model initialized, used for constructor's param injection or initialize
          * @param parameter constructor's param **/
         fun <T : Display,M : Model<T>> spawn(location: Location,modelClazz: KClass<M>,initializer : (M.() -> Unit)? = null,vararg parameter : Any?) : M{
-            val model = modelClazz.constructors.find { it.parameters.size == parameter.size }?.call(*parameter)
-                ?: throw IllegalArgumentException("cannot find matching constructor of ${modelClazz.simpleName} : ${modelClazz.constructors.first().parameters}")
+            val model = modelClazz.constructors.find { constructor ->
+                val constructorParams = constructor.parameters
+                if (constructorParams.size != parameter.size) return@find false
+                constructorParams.zip(parameter).all { (ctorParam, arg) ->
+                    val ctorType = ctorParam.type.classifier as? kotlin.reflect.KClass<*>
+                    when {
+                        arg == null -> ctorParam.type.isMarkedNullable
+                        ctorType != null -> ctorType.isInstance(arg)
+                        else -> false
+                    }
+                }
+            }?.call(*parameter)
+                ?: throw IllegalArgumentException("Cannot find matching constructor for ${modelClazz.simpleName} with parameters ${parameter.map { it?.javaClass?.name ?: "null" }}")
             val res: RenderResult<T> = model.renderer.load(location)
             initializer?.let { model.it() }
             model.initialize(location,res)
@@ -78,7 +89,7 @@ abstract class Model<T : Display> protected constructor(val name: String){
     }
 
     open fun remove(){
-        modules.forEach { detachModule(it) }
+        modules.forEach { it.onDetach(this) }
         for (passenger in mainDisplay.passengers) {
             passenger.remove()
         }
@@ -127,7 +138,7 @@ class ValidationModule(val checkInterval : Int) : ModelModule<Display>() {
     }
 }
 fun <T : Display,M : Model<T>>Location.spawnModel(modelClazz : KClass<M>, initializer : (M.() -> Unit)? = null, vararg parameter : Any?) : M =
-    Model.spawn(this,modelClazz,initializer,parameter)
+    Model.spawn(this,modelClazz,initializer,*parameter)
 
 fun <T : Display,M : Model<T>> Location.spawnModel(modelClazz : KClass<M>,vararg parameter : Any?) : M =
     spawnModel(modelClazz, null,*parameter)
